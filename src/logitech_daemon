@@ -1,0 +1,37 @@
+#!/bin/bash
+
+. /etc/rc.conf
+. /etc/rc.d/functions
+
+PID=`pidof -o %PPID /usr/bin/logitech_daemon`
+case "$1" in
+  start)
+    stat_busy "Starting logitech_daemon"
+    [ -z "$PID" ] && /usr/bin/logitech_daemon
+    if [ $? -gt 0 ]; then
+      stat_fail
+    else
+      echo $PID > /var/run/logitech_daemon.pid
+      stat_done
+      add_daemon logitech_daemon
+    fi
+    ;;
+  stop)
+    stat_busy "Stopping logitech_daemon"
+    [ ! -z "$PID" ]  && kill $PID &> /dev/null
+    if [ $? -gt 0 ]; then
+      stat_fail
+    else
+      rm /var/run/logitech_daemon.pid
+      stat_done
+      rm_daemon logitech_daemon
+    fi
+    ;;
+  restart)
+    $0 stop
+    sleep 1
+    $0 start
+    ;;
+  *)
+    echo "usage: $0 {start|stop|restart}"  
+esac
