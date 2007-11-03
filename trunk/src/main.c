@@ -25,7 +25,6 @@
 #include <errno.h>
 #include <daemon.h>
 #include <libg15.h>
-// #include "logitechdaemon.h"
 
 void exitLogitechDaemon( int status )
 {
