@@ -9,13 +9,14 @@ INCLUDE_DIRECTORIES(${DBUS_INCLUDES}
 					${LIBDAEMON_INCLUDE_DIR}
 					${G15TOOLS_INCLUDES}
  					${GLIB2_INCLUDE_DIR} )
-SET( SRC main.cpp logitechdaemon.cpp )
-ADD_EXECUTABLE( logitech_daemon ${SRC} )
-TARGET_LINK_LIBRARIES( logitech_daemon
+SET( SRC logitechdaemon.c main.c )
+ADD_EXECUTABLE( logitechdaemon ${SRC} )
+TARGET_LINK_LIBRARIES( logitechdaemon
 					${DBUS_LIBRARY}
 					${DBUS_GLIB_LIBRARY}
 					${GLIB2_LIBRARIES}
 					${LIBDAEMON_LIBRARY}
 					${G15TOOLS_LIBRARY} )
-INSTALL( PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/logitech_daemon DESTINATION /etc/rc.d )
-INSTALL( TARGETS logitech_daemon RUNTIME DESTINATION /usr/bin )
+INSTALL( PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/logitech-daemon DESTINATION /etc/rc.d )
+INSTALL( PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/logitech-daemon.conf DESTINATION /etc/dbus-1/system.d )
+INSTALL( TARGETS logitechdaemon RUNTIME DESTINATION /usr/bin )

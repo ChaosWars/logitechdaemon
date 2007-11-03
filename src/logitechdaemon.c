@@ -17,11 +17,13 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include <stdbool.h>
 #include <daemon.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <libg15.h>
@@ -32,6 +34,9 @@
 #include "logitechdaemon.h"
 #include "blank.h"
 #include "logo.h"
+
+int uinput_fd;
+struct uinput_user_dev uinput;
 
 /* Define before include logitechdaemonglue.h */
 static gboolean logitechdaemon_set_kb_brightness( gint32 IN_brightness );
@@ -53,54 +58,18 @@ static gboolean logitechdaemon_set_kb_brightness( gint32 IN_brightness )
 	setKBBrightness( IN_brightness );
 }
 
-static void single_instance_factory_class_init( LogitechDaemonClass *logitechdaemonclass )
+static void logitech_daemon_class_init( LogitechDaemonClass *logitechdaemonclass )
 {
 	dbus_g_object_type_install_info(G_TYPE_FROM_CLASS( logitechdaemonclass ), &dbus_glib_logitechdaemon_object_info );
 }
 
-static void single_instance_factory_init( LogitechDaemon *logitechdaemon )
+static void logitech_daemon_init( LogitechDaemon *logitechdaemon )
 {
 }
 
-G_DEFINE_TYPE(LogitechDaemon, logitech-daemon, G_TYPE_OBJECT);
+G_DEFINE_TYPE(LogitechDaemon, logitech_daemon, G_TYPE_OBJECT);
 
-LogitechDaemon::LogitechDaemon()
-{
-}
-
-LogitechDaemon::~LogitechDaemon()
-{
-}
-
-bool LogitechDaemon::initialize()
-{
-	int error;
-	
-	if( !initializeUInput() )
-		return false;
-
-	if( !initializeDBUS() )
-		return false;
-
-	error = initLibG15();
-
-	if( error != G15_NO_ERROR ){
-		daemon_log( LOG_ERR, "Failed to initialize libg15.\n" );
-		return false;
-	}else{
-		if( writePixmapToLCD( logo_data ) != 0 )
-			daemon_log( LOG_ERR, "Error displaying logo.\n" );
-
-		setLEDs( G15_LED_M1 );
-		setKBBrightness( G15_BRIGHTNESS_MEDIUM );
-		setLCDBrightness( G15_BRIGHTNESS_MEDIUM );
-		setLCDContrast( G15_CONTRAST_MEDIUM );
-	}
-
-	return true;
-}
-
-bool LogitechDaemon::initializeUInput()
+bool initializeUInput()
 {
 	uinput_fd = open("/dev/uinput", O_WRONLY | O_NDELAY );
 
@@ -116,7 +85,9 @@ bool LogitechDaemon::initializeUInput()
 	ioctl(uinput_fd, UI_SET_EVBIT, EV_KEY);
 	ioctl(uinput_fd, UI_SET_EVBIT, EV_REL);
 
-	for( int i = 0; i < 256; i++ ){
+	int i;
+
+	for( i = 0; i < 256; i++ ){
 		ioctl( uinput_fd, UI_SET_KEYBIT, i );
 	}
 
@@ -132,8 +103,9 @@ bool LogitechDaemon::initializeUInput()
 	return true;
 }
 
-bool LogitechDaemon::initializeDBUS()
+bool initializeDBUS()
 {
+	LogitechDaemon *ld;
 	DBusGConnection *connection;
 	DBusMessage *message;
 	GError *error;
@@ -167,12 +139,42 @@ bool LogitechDaemon::initializeDBUS()
 		return false;
 	}
 
+	ld = g_object_new( logitech_daemon_get_type(), NULL );
+	dbus_g_connection_register_g_object (connection, "/LogitechDaemon", G_OBJECT( ld ) );
 	daemon_log( LOG_INFO, "%s successfully negotiated dbus connection.\n", DAEMON_NAME );
 
 	return true;
 }
 
-void LogitechDaemon::shutdown()
+bool initialize()
+{
+	int error;
+	
+	if( !initializeUInput() )
+		return false;
+
+	if( !initializeDBUS() )
+		return false;
+
+	error = initLibG15();
+
+	if( error != G15_NO_ERROR ){
+		daemon_log( LOG_ERR, "Failed to initialize libg15.\n" );
+		return false;
+	}else{
+		if( writePixmapToLCD( logo_data ) != 0 )
+			daemon_log( LOG_ERR, "Error displaying logo.\n" );
+
+		setLEDs( G15_LED_M1 );
+		setKBBrightness( G15_BRIGHTNESS_MEDIUM );
+		setLCDBrightness( G15_BRIGHTNESS_MEDIUM );
+		setLCDContrast( G15_CONTRAST_MEDIUM );
+	}
+
+	return true;
+}
+
+void shutdown()
 {
 	if( writePixmapToLCD( blank_data ) != 0 )
 		daemon_log( LOG_ERR, "Error blanking screen.\n" );
