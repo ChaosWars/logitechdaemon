@@ -6,25 +6,25 @@
 PID=`pidof -o %PPID /usr/bin/logitechdaemon`
 case "$1" in
   start)
-    stat_busy "Starting logitech_daemon"
+    stat_busy "Starting logitech-daemon"
     [ -z "$PID" ] && /usr/bin/logitechdaemon
     if [ $? -gt 0 ]; then
       stat_fail
     else
-      echo $PID > /var/run/logitechdaemon.pid
+      echo $PID > /var/run/logitech-daemon.pid
       stat_done
-      add_daemon logitechdaemon
+      add_daemon logitech-daemon
     fi
     ;;
   stop)
-    stat_busy "Stopping logitechdaemon"
+    stat_busy "Stopping logitech-daemon"
     [ ! -z "$PID" ]  && kill $PID &> /dev/null
     if [ $? -gt 0 ]; then
       stat_fail
     else
-      rm /var/run/logitechdaemon.pid
+      rm /var/run/logitech-daemon.pid
       stat_done
-      rm_daemon logitechdaemon
+      rm_daemon logitech-daemon
     fi
     ;;
   restart)

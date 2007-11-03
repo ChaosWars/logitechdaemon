@@ -20,8 +20,25 @@
 #ifndef _LOGITECHDAEMON_H_
 #define _LOGITECHDAEMON_H_
 
-//#include <glib.h>
+#include <glib-object.h>
 #include <linux/uinput.h>
+
+#define DAEMON_NAME "LogitechDaemon"
+
+typedef struct _LogitechDaemon {
+	GObject parent;
+} LogitechDaemon;
+
+typedef struct _LogitechDaemonClass {
+	GObjectClass parent;
+} LogitechDaemonClass;
+
+/* Define before include logitechdaemonglue.h */
+static gboolean logitechdaemon_set_kb_brightness( gint32 IN_brightness );
+
+int uinput_fd;
+struct uinput_user_dev uinput;
+LogitechDaemon *ld;
 
 // bool initialize();
 // void shutdown();
