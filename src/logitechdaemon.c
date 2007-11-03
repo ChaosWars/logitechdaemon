@@ -34,24 +34,7 @@
 #include "logitechdaemon.h"
 #include "blank.h"
 #include "logo.h"
-
-int uinput_fd;
-struct uinput_user_dev uinput;
-
-/* Define before include logitechdaemonglue.h */
-static gboolean logitechdaemon_set_kb_brightness( gint32 IN_brightness );
-
 #include "logitechdaemonglue.h"
-
-#define DAEMON_NAME "LogitechDaemon"
-
-typedef struct _LogitechDaemon {
-	GObject parent;
-} LogitechDaemon;
-
-typedef struct _LogitechDaemonClass {
-	GObjectClass parent;
-} LogitechDaemonClass;
 
 static gboolean logitechdaemon_set_kb_brightness( gint32 IN_brightness )
 {
@@ -105,7 +88,6 @@ bool initializeUInput()
 
 bool initializeDBUS()
 {
-	LogitechDaemon *ld;
 	DBusGConnection *connection;
 	DBusMessage *message;
 	GError *error;
