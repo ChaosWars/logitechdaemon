@@ -20,22 +20,15 @@
 #ifndef _LOGITECHDAEMON_H_
 #define _LOGITECHDAEMON_H_
 
+//#include <glib.h>
 #include <linux/uinput.h>
 
-class LogitechDaemon
-{
+// bool initialize();
+// void shutdown();
 
-	public:
-		LogitechDaemon();
-		~LogitechDaemon();
-		bool initialize();
-		void shutdown();
+/* private */
 
-	private:
-		int uinput_fd;
-		struct uinput_user_dev uinput;
-		bool initializeUInput();
-		bool initializeDBUS();
-};
+// bool initializeUInput();
+// bool initializeDBUS();
 
 #endif //	_LOGITECHDAEMON_H_
