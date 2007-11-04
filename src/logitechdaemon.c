@@ -74,9 +74,7 @@ bool initializeDBUS()
 	DBusGConnection *connection;
 	DBusMessage *message;
 	GError *error;
-	DBusGProxy *proxy;
-	char **name_list;
-	char **name_list_ptr;
+// 	DBusGProxy *proxy;
 	guint32 request_name_ret;
   
 	g_type_init ();
@@ -91,22 +89,23 @@ bool initializeDBUS()
 		return false;
 	}
 
-	proxy = dbus_g_proxy_new_for_name( connection, DBUS_SERVICE_DBUS, DBUS_PATH_DBUS, DBUS_INTERFACE_DBUS );
-
-	if( !org_freedesktop_DBus_request_name (proxy, "org.freedesktop.LogitechDaemon", 0, &request_name_ret, &error ) ){
-		daemon_log( LOG_ERR, "Failed to obtain adress on bus: %s\n", error->message );
-		g_error_free( error );
-		return false;
-	}
-
-	if (request_name_ret != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) {
-		daemon_log( LOG_ERR, "Adress is already registered on bus\n" );
-		return false;
-	}
+// 	proxy = dbus_g_proxy_new_for_name( connection, DBUS_SERVICE_DBUS, DBUS_PATH_DBUS, DBUS_INTERFACE_DBUS );
+// 
+// 	if( !org_freedesktop_DBus_request_name (proxy, "org.freedesktop.LogitechDaemon", 0, &request_name_ret, &error ) ){
+// 		daemon_log( LOG_ERR, "Failed to obtain adress on bus: %s\n", error->message );
+// 		g_error_free( error );
+// 		return false;
+// 	}
+// 
+// 	if (request_name_ret != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) {
+// 		daemon_log( LOG_ERR, "Adress is already registered on bus\n" );
+// 		return false;
+// 	}
 
 	ld = g_object_new( logitech_daemon_get_type(), NULL );
 	dbus_g_connection_register_g_object (connection, "/LogitechDaemon", G_OBJECT( ld ) );
 	daemon_log( LOG_INFO, "%s successfully negotiated dbus connection.\n", DAEMON_NAME );
+// 	dbus_connection_setup_with_g_main( connection, NULL );
 
 	return true;
 }
