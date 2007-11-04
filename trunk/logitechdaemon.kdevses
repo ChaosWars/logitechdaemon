@@ -2,29 +2,29 @@
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
  <DocsAndViews NumberOfDocuments="8" >
-  <Doc0 NumberOfViews="1" URL="file:///home/lawrence/Projects/LogitechDaemon/src/logitechdaemon.h" >
-   <View0 Encoding="" line="53" Type="Source" />
+  <Doc0 NumberOfViews="1" URL="file:///home/lawrence/Projects/LogitechDaemon/CMakeLists.txt" >
+   <View0 Encoding="" line="0" Type="Source" />
   </Doc0>
-  <Doc1 NumberOfViews="1" URL="file:///home/lawrence/Projects/LogitechDaemon/src/logitechdaemon.cpp" >
-   <View0 Encoding="" line="130" Type="Source" />
+  <Doc1 NumberOfViews="1" URL="file:///home/lawrence/Projects/LogitechDaemon/src/CMakeLists.txt" >
+   <View0 Encoding="" line="16" Type="Source" />
   </Doc1>
-  <Doc2 NumberOfViews="1" URL="file:///home/lawrence/Projects/LogitechDaemon/src/main.cpp" >
-   <View0 Encoding="" line="198" Type="Source" />
+  <Doc2 NumberOfViews="1" URL="file:///home/lawrence/Projects/LogitechDaemon/src/main.c" >
+   <View0 Encoding="" line="135" Type="Source" />
   </Doc2>
-  <Doc3 NumberOfViews="1" URL="file:///home/lawrence/Projects/LogitechDaemon/src/CMakeLists.txt" >
-   <View0 Encoding="" line="3" Type="Source" />
+  <Doc3 NumberOfViews="1" URL="file:///home/lawrence/Projects/LogitechDaemon/src/logitechdaemon.h" >
+   <View0 Encoding="" line="37" Type="Source" />
   </Doc3>
-  <Doc4 NumberOfViews="1" URL="file:///home/lawrence/Projects/LogitechDaemon/cmake/FindDBUS.cmake" >
-   <View0 Encoding="" line="65" Type="Source" />
+  <Doc4 NumberOfViews="1" URL="file:///home/lawrence/Projects/LogitechDaemon/src/logitechdaemon.c" >
+   <View0 Encoding="" line="76" Type="Source" />
   </Doc4>
-  <Doc5 NumberOfViews="1" URL="file:///home/lawrence/Projects/LogitechDaemon/src/daemon.xml" >
-   <View0 Encoding="" line="3" Type="Source" />
+  <Doc5 NumberOfViews="1" URL="file:///home/lawrence/Projects/LogitechDaemon/cmake/FindDBUS.cmake" >
+   <View0 Encoding="" line="111" Type="Source" />
   </Doc5>
-  <Doc6 NumberOfViews="1" URL="file:///home/lawrence/Projects/LogitechDaemon/src/logitechdaemon.c" >
-   <View0 Encoding="" line="0" Type="Source" />
+  <Doc6 NumberOfViews="1" URL="file:///home/lawrence/Projects/LogitechDaemon/cmake/FindGLIB2.cmake" >
+   <View0 Encoding="" line="37" Type="Source" />
   </Doc6>
-  <Doc7 NumberOfViews="1" URL="file:///home/lawrence/Projects/LogitechDaemon/src/main.c" >
-   <View0 Encoding="" line="0" Type="Source" />
+  <Doc7 NumberOfViews="1" URL="file:///home/lawrence/Projects/LogitechDaemon/src/logitechdaemon.xml" >
+   <View0 Encoding="" line="11" Type="Source" />
   </Doc7>
  </DocsAndViews>
  <pluginList>
