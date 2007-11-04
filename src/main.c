@@ -25,8 +25,6 @@
 #include <errno.h>
 #include <daemon.h>
 #include <libg15.h>
-#include <stdbool.h>
-#include <glib.h>
 // #include "logitechdaemon.h"
 
 void exitLogitechDaemon( int status )
@@ -41,7 +39,6 @@ void exitLogitechDaemon( int status )
 
 int main( int argc, char *argv[] )
 {
-// 	GMainLoop *loop;
 	int error;
 	pid_t pid;
 
@@ -94,9 +91,6 @@ int main( int argc, char *argv[] )
 		int fd, quit = 0;
 		fd_set fds;
 
-		/* Create a new event loop to run in */
-// 		loop = g_main_loop_new (NULL, FALSE);
-
 		if (daemon_close_all(-1) < 0) {
 			daemon_log(LOG_ERR, "Failed to close all file descriptors: %s", strerror(errno));
 			exitLogitechDaemon( EXIT_FAILURE );
@@ -133,7 +127,6 @@ int main( int argc, char *argv[] )
 
 		daemon_log(LOG_INFO, "Sucessfully started LogitechDaemon");
 
-// 		g_main_loop_run (loop);
 
 		/* Prepare for select() on the signal fd */
 		FD_ZERO(&fds);
@@ -148,7 +141,7 @@ int main( int argc, char *argv[] )
 				/* If we've been interrupted by an incoming signal, continue */
 				if (errno == EINTR)
 					continue;
-
+				
 				daemon_log(LOG_ERR, "select(): %s", strerror(errno));
 				break;
 			}
