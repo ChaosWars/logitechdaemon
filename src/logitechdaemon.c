@@ -34,23 +34,6 @@
 #include "logitechdaemon.h"
 #include "blank.h"
 #include "logo.h"
-#include "logitechdaemonglue.h"
-
-static gboolean logitechdaemon_set_kb_brightness( gint32 IN_brightness )
-{
-	setKBBrightness( IN_brightness );
-}
-
-static void logitech_daemon_class_init( LogitechDaemonClass *logitechdaemonclass )
-{
-	dbus_g_object_type_install_info(G_TYPE_FROM_CLASS( logitechdaemonclass ), &dbus_glib_logitechdaemon_object_info );
-}
-
-static void logitech_daemon_init( LogitechDaemon *logitechdaemon )
-{
-}
-
-G_DEFINE_TYPE(LogitechDaemon, logitech_daemon, G_TYPE_OBJECT);
 
 bool initializeUInput()
 {
@@ -122,7 +105,7 @@ bool initializeDBUS()
 	}
 
 	ld = g_object_new( logitech_daemon_get_type(), NULL );
-	dbus_g_connection_register_g_object (connection, "/LogitechDaemon", G_OBJECT( ld ) );
+	dbus_g_connection_register_g_object (connection, "/Main", G_OBJECT( ld ) );
 	daemon_log( LOG_INFO, "%s successfully negotiated dbus connection.\n", DAEMON_NAME );
 
 	return true;

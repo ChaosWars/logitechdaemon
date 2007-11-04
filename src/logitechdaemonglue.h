@@ -53,7 +53,7 @@ G_BEGIN_DECLS
 #endif /* !G_ENABLE_DEBUG */
 
 
-/* BOOLEAN:DOUBLE,POINTER (/tmp/dbus-binding-tool-c-marshallers.AGIY0T:1) */
+/* BOOLEAN:DOUBLE,POINTER (/tmp/dbus-binding-tool-c-marshallers.BPAZ0T:1) */
 extern void dbus_glib_marshal_logitechdaemon_BOOLEAN__DOUBLE_POINTER (GClosure     *closure,
                                                                       GValue       *return_value,
                                                                       guint         n_param_values,
@@ -113,7 +113,7 @@ const DBusGObjectInfo dbus_glib_logitechdaemon_object_info = {
   0,
   dbus_glib_logitechdaemon_methods,
   1,
-"org.freedesktop.LogitechDaemon\0setKBBrightness\0S\0brightness\0I\0d\0\0\0",
+"org.freedesktop.LogitechDaemonInterface\0setKBBrightness\0S\0brightness\0I\0d\0\0\0",
 "\0",
 "\0"
 };
