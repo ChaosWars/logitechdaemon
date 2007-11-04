@@ -25,10 +25,11 @@
 #include <errno.h>
 #include <daemon.h>
 #include <libg15.h>
+#include "logitechdaemon.h"
 
 void exitLogitechDaemon( int status )
 {
-	shutdown();
+	ld.shutdown();
 	daemon_log(LOG_INFO, "Exiting LogitechDaemon");
 	daemon_retval_send(-1);
 	daemon_signal_done();
@@ -84,7 +85,6 @@ int main( int argc, char *argv[] )
 			return 255;
 		}
 
-// 		daemon_log(retval != 0 ? LOG_ERR : LOG_INFO, "LogitechDaemon returned %i as return value.", retval );
 		return retval;
 		
 	} else { /* The daemon */
@@ -114,7 +114,9 @@ int main( int argc, char *argv[] )
 		
 		/*... do some further init work here */
 
-		if( !initialize() ){
+		LogitechDaemon ld;
+
+		if( !ld.initialize() ){
 			daemon_log( LOG_ERR, "Failed to initialize LogitechDaemon.\n" );
 			daemon_retval_send( 1 );
 			exitLogitechDaemon( EXIT_FAILURE );
