@@ -25,11 +25,11 @@
 #include <errno.h>
 #include <daemon.h>
 #include <libg15.h>
-#include "logitechdaemon.h"
+// #include "logitechdaemon.h"
 
 void exitLogitechDaemon( int status )
 {
-	ld.shutdown();
+	shutdown();
 	daemon_log(LOG_INFO, "Exiting LogitechDaemon");
 	daemon_retval_send(-1);
 	daemon_signal_done();
@@ -114,9 +114,9 @@ int main( int argc, char *argv[] )
 		
 		/*... do some further init work here */
 
-		LogitechDaemon ld;
+// 		*ld = new LogitechDaemon();
 
-		if( !ld.initialize() ){
+		if( !initialize() ){
 			daemon_log( LOG_ERR, "Failed to initialize LogitechDaemon.\n" );
 			daemon_retval_send( 1 );
 			exitLogitechDaemon( EXIT_FAILURE );

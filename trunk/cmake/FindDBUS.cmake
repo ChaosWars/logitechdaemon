@@ -6,7 +6,7 @@ FIND_LIBRARY( DBUS_LIBRARY NAME dbus-1 PATHS /usr/lib /usr/local/lib )
 FIND_LIBRARY( DBUS_GLIB_LIBRARY NAME dbus-glib-1 PATHS /usr/lib /usr/local/lib )
 FIND_LIBRARY( DBUS_QT4_LIBRARY NAME QtDBus PATHS /usr/lib /usr/local/lib /opt/qt4/lib )
 FIND_PROGRAM( QT4_DBUSXML_2CPP NAME qdbusxml2cpp PATHS /usr/bin/ /usr/local/bin /opt/qt4 )
-FIND_PROGRAM GLIB_DBUS_BINDING_TOOL NAME dbus-binding-tool /usr/bin /usr/local/bin )41
+FIND_PROGRAM( GLIB_DBUS_BINDING_TOOL NAME dbus-binding-tool PATHS /usr/bin /usr/local/bin )
 
 IF( DBUS_INCLUDE_DIR AND DBUS_INCLUDE_LIB_DIR AND DBUS_LIBRARY )
    SET( DBUS_FOUND TRUE )
@@ -96,23 +96,23 @@ MACRO( GLIB_BIND_XML_SERVER outfiles prefix )
 	FOREACH( it ${ARGN} )
 		GET_FILENAME_COMPONENT( outfile ${it} NAME_WE )
 		GET_FILENAME_COMPONENT( in ${it} ABSOLUTE )
-		SET( outfile ${CMAKE_CURRENT_BINARY_DIR}/${outfile}glue.c )
+		SET( outfile ${CMAKE_CURRENT_BINARY_DIR}/${outfile}glue.h )
 		ADD_CUSTOM_COMMAND(OUTPUT ${outfile}
 			COMMAND ${GLIB_DBUS_BINDING_TOOL}
-			ARGS -dbus-binding-tool --mode=glib-server --prefix=${prefix} --output=${outfile} ${it}
+			ARGS --mode=glib-server --prefix=${prefix} --output=${outfile} ${in}
 			DEPENDS ${infile} )
 		SET( ${outfiles} "${${outfiles}}" ${outfile} )
 	ENDFOREACH( it )
 ENDMACRO( GLIB_BIND_XML_SERVER )
 
-MACRO( GLIB_BIND_XML_CLIENT outfiles classname )
+MACRO( GLIB_BIND_XML_CLIENT outfiles prefix )
 	FOREACH( it ${ARGN} )
 		GET_FILENAME_COMPONENT( outfile ${it} NAME_WE )
 		GET_FILENAME_COMPONENT( in ${it} ABSOLUTE )
-		SET( outfile ${CMAKE_CURRENT_BINARY_DIR}/${outfile}glue.c )
+		SET( outfile ${CMAKE_CURRENT_BINARY_DIR}/${outfile}glue.h )
 		ADD_CUSTOM_COMMAND(OUTPUT ${outfile}
 			COMMAND ${GLIB_DBUS_BINDING_TOOL}
-			ARGS -dbus-binding-tool --mode=glib-client --prefix=${prefix} --output=${outfile} ${it}
+			ARGS --mode=glib-client --prefix=${prefix} --output=${outfile} ${in}
 			DEPENDS ${infile} )
 		SET( ${outfiles} "${${outfiles}}" ${outfile} )
 	ENDFOREACH( it )

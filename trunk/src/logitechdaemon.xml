@@ -3,16 +3,16 @@
 <node name="/org/freedesktop/LogitechDaemon">
 	<interface name="org.freedesktop.LogitechDaemon">
 		<annotation name="org.freedesktop.DBus.GLib.CSymbol" value="logitechdaemon"/>
-		<method name="set_LCD_Brightness" >
+		<method name="set_lcd_brightness" >
 			<arg name="brightness" type="i" direction="in" />
 		</method>
-		<method name="set_LCD_Contrast">
+		<method name="set_lcd_contrast">
 			<arg name="contrast" type="i" direction="in" />
 		</method>
-		<method name="set_KB_Brightness">
+		<method name="set_kb_brightness">
 			<arg name="brightness" type="i" direction="in" />
 		</method>
-		<signal name="LCDBrightnessSet" >
+		<!-- signal name="LCDBrightnessSet" >
 			<arg name="brightness" type="i" direction="out" />
 		</signal>
 		<signal name="LCDContrastSet">
@@ -20,6 +20,6 @@
 		</signal>
 		<signal name="KBBrightnessSet">
 			<arg name="brightness" type="i" direction="out" />
-		</signal>
+		</signal-->
 	</interface>
 </node>

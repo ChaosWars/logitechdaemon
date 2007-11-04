@@ -34,13 +34,39 @@ typedef struct _LogitechDaemonClass {
 } LogitechDaemonClass;
 
 /* Define before including logitechdaemonglue.h */
+static gboolean logitechdaemon_set_lcd_brightness( LogitechDaemon *ld, gint32 IN_brightness, GError **error );
+static gboolean logitechdaemon_set_lcd_contrast( LogitechDaemon *ld, gint32 IN_contrast, GError **error );
 static gboolean logitechdaemon_set_kb_brightness( LogitechDaemon *ld, gint32 IN_brightness, GError **error );
 
 #include "logitechdaemonglue.h"
 
 int uinput_fd;
 struct uinput_user_dev uinput;
-LogitechDaemon *ld;
+LogitechDaemon *ld = NULL;
+
+static gboolean logitechdaemon_set_lcd_brightness( LogitechDaemon *ld, gint32 IN_brightness, GError **error )
+{
+	int retval = setLCDBrightness( IN_brightness );
+
+	if( retval < 0 ){
+		g_set_error( error, 0, 0, "Failed to set keyboard brightness\n" );
+		return false;
+	}
+
+	return true;
+}
+
+static gboolean logitechdaemon_set_lcd_contrast( LogitechDaemon *ld, gint32 IN_contrast, GError **error )
+{
+	int retval = setLCDContrast( IN_contrast );
+
+	if( retval < 0 ){
+		g_set_error( error, 0, 0, "Failed to set keyboard brightness\n" );
+		return false;
+	}
+
+	return true;
+}
 
 static gboolean logitechdaemon_set_kb_brightness( LogitechDaemon *ld, gint32 IN_brightness, GError **error )
 {
@@ -56,7 +82,7 @@ static gboolean logitechdaemon_set_kb_brightness( LogitechDaemon *ld, gint32 IN_
 
 static void logitech_daemon_class_init( LogitechDaemonClass *logitechdaemonclass )
 {
-	dbus_g_object_type_install_info(G_TYPE_FROM_CLASS( logitechdaemonclass ), &dbus_glib_logitechdaemon_object_info );
+	dbus_g_object_type_install_info(G_TYPE_FROM_CLASS( logitechdaemonclass ), &dbus_glib_logitech_daemon_object_info );
 }
 
 static void logitech_daemon_init( LogitechDaemon *logitechdaemon )
