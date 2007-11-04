@@ -105,7 +105,7 @@ bool initializeDBUS()
 	}
 
 	ld = g_object_new( logitech_daemon_get_type(), NULL );
-	dbus_g_connection_register_g_object (connection, "/Main", G_OBJECT( ld ) );
+	dbus_g_connection_register_g_object (connection, "/LogitechDaemon", G_OBJECT( ld ) );
 	daemon_log( LOG_INFO, "%s successfully negotiated dbus connection.\n", DAEMON_NAME );
 
 	return true;
