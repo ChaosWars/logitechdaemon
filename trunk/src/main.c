@@ -25,9 +25,6 @@
 #include <errno.h>
 #include <daemon.h>
 #include <libg15.h>
-#include "logitechdaemon.h"
-
-extern LogitechDaemon *ld;
 
 void exitLogitechDaemon( int status )
 {

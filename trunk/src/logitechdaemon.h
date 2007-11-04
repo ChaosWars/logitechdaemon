@@ -33,19 +33,41 @@ typedef struct _LogitechDaemonClass {
 	GObjectClass parent;
 } LogitechDaemonClass;
 
-/* Define before include logitechdaemonglue.h */
-static gboolean logitechdaemon_set_kb_brightness( gint32 IN_brightness );
+/* Define before including logitechdaemonglue.h */
+static gboolean logitechdaemon_set_kb_brightness( LogitechDaemon *ld, gint32 IN_brightness, GError **error );
+
+#include "logitechdaemonglue.h"
 
 int uinput_fd;
 struct uinput_user_dev uinput;
 LogitechDaemon *ld;
 
-// bool initialize();
-// void shutdown();
+static gboolean logitechdaemon_set_kb_brightness( LogitechDaemon *ld, gint32 IN_brightness, GError **error )
+{
+	int retval = setKBBrightness( IN_brightness );
 
-/* private */
+	if( retval < 0 ){
+		g_set_error( error, 0, 0, "Failed to set keyboard brightness\n" );
+		return false;
+	}
 
-// bool initializeUInput();
-// bool initializeDBUS();
+	return true;
+}
+
+static void logitech_daemon_class_init( LogitechDaemonClass *logitechdaemonclass )
+{
+	dbus_g_object_type_install_info(G_TYPE_FROM_CLASS( logitechdaemonclass ), &dbus_glib_logitechdaemon_object_info );
+}
+
+static void logitech_daemon_init( LogitechDaemon *logitechdaemon )
+{
+}
+
+G_DEFINE_TYPE(LogitechDaemon, logitech_daemon, G_TYPE_OBJECT);
+
+bool initialize();
+void shutdown();
+bool initializeUInput();
+bool initializeDBUS();
 
 #endif //	_LOGITECHDAEMON_H_
