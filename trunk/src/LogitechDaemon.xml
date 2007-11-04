@@ -1,8 +1,14 @@
-<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
-	"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<?xml version="1.0" encoding="UTF-8" ?>
+
 <node name="/org/freedesktop/LogitechDaemon">
-	<interface name="org.freedesktop.LogitechDaemonInterface">
+	<interface name="org.freedesktop.LogitechDaemon">
 		<annotation name="org.freedesktop.DBus.GLib.CSymbol" value="logitechdaemon"/>
+		<method name="setLCDBrightness">
+			<arg type="d" name="brightness" direction="in" />
+		</method>
+		<method name="setLCDContrast">
+			<arg type="d" name="contrast" direction="in" />
+		</method>
 		<method name="setKBBrightness">
 			<arg type="d" name="brightness" direction="in" />
 		</method>
