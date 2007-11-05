@@ -41,6 +41,19 @@ DBusThread *dbus_thread = NULL;
 int uinput_fd;
 struct uinput_user_dev uinput;
 
+void signalhandler( int sig )
+{
+	switch( sig ){
+		case SIGINT:
+		case SIGQUIT:
+		case SIGTERM:
+			QCoreApplication::quit();
+			break;
+		default:
+			break;
+	}
+}
+
 void exitLogitechDaemon( int status )
 {
 	if( dbus_thread != NULL )
@@ -161,8 +174,6 @@ int main( int argc, char *argv[] )
 		return retval;
 
 	} else { /* The daemon */
-		//Install signal handlers
-// 		signal(  );
 
 		if (daemon_close_all(-1) < 0) {
 			daemon_log(LOG_ERR, "Failed to close all file descriptors: %s", strerror(errno));
@@ -175,13 +186,6 @@ int main( int argc, char *argv[] )
 
 			/* Send the error condition to the parent process */
 			daemon_retval_send(1);
-			exitLogitechDaemon( EXIT_FAILURE );
-		}
-
-		/* Initialize signal handling */
-		if (daemon_signal_init(SIGINT, SIGTERM, SIGQUIT, SIGHUP, 0) < 0) {
-			daemon_log(LOG_ERR, "Could not register signal handlers (%s).", strerror(errno));
-			daemon_retval_send(2);
 			exitLogitechDaemon( EXIT_FAILURE );
 		}
 
@@ -207,56 +211,8 @@ int main( int argc, char *argv[] )
 		daemon_retval_send(0);
 		daemon_log(LOG_INFO, "Sucessfully started LogitechDaemon");
 
-		
+		signal( SIGTERM, signalhandler );
 		app.exec();
-
-		
-		/* Prepare for select() on the signal fd */
-// 		FD_ZERO(&fds);
-// 		FD_SET(fd = daemon_signal_fd(), &fds);
-// 
-// 		while (!quit){
-// 			fd_set fds2 = fds;
-// 
-// 			/* Wait for an incoming signal */
-// 			if (select(FD_SETSIZE, &fds2, 0, 0, 0) < 0) {
-// 
-// 				/* If we've been interrupted by an incoming signal, continue */
-// 				if (errno == EINTR)
-// 					continue;
-// 
-// 				daemon_log(LOG_ERR, "select(): %s", strerror(errno));
-// 				break;
-// 			}
-// 
-// 			/* Check if a signal has been recieved */
-// 			if (FD_ISSET(fd, &fds)) {
-// 				int sig;
-// 
-// 				/* Get signal */
-// 				if ((sig = daemon_signal_next()) <= 0) {
-// 					daemon_log(LOG_ERR, "daemon_signal_next() failed.");
-// 					break;
-// 				}
-// 
-// 				/* Dispatch signal */
-// 				switch (sig) {
-// 
-// 					case SIGINT:
-// 					case SIGQUIT:
-// 					case SIGTERM:
-// 						daemon_log(LOG_WARNING, "Got SIGINT, SIGQUIT or SIGTERM");
-// 						quit = 1;
-// 						break;
-// 
-// 					case SIGHUP:
-// 						daemon_log(LOG_INFO, "Got a HUP");
-// 						daemon_exec("/", NULL, "/bin/ls", "ls", (char*) NULL);
-// 						break;
-// 
-// 				}
-// 			}
-// 		}
 	}
 
 	exitLogitechDaemon( EXIT_SUCCESS );
