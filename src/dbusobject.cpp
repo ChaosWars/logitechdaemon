@@ -33,7 +33,6 @@ DBusObject::~DBusObject()
 
 bool DBusObject::connectToDBus()
 {
-	daemon_log( LOG_INFO, "DBusThread::connectToDBus() : %d\n", QThread::currentThread() );
 	adaptor = new LogitechDaemonAdaptor( this );
 	daemon_log( LOG_INFO, "Created adaptor.\n" );
 	QDBusConnection connection = QDBusConnection::systemBus();
