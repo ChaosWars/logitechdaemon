@@ -20,15 +20,12 @@
 #ifndef _LOGITECHDAEMON_H_
 #define _LOGITECHDAEMON_H_
 
-#define DAEMON_NAME "LogitechDaemon"
+#include <QThread>
 
-#include <QObject>
-#include <linux/uinput.h>
-// #include "daemon_adaptor.h"
+class QDBusConnection;
+class LogitechDaemonAdaptor;
 
-// class QDBusConnection;
-
-class LogitechDaemon : public QObject
+class LogitechDaemon : public QThread
 {
 	Q_OBJECT
 
@@ -36,24 +33,18 @@ class LogitechDaemon : public QObject
 		LogitechDaemon();
 		~LogitechDaemon();
 		bool initialize();
-		void shutdown();
 
 	private:
-	 	int uinput_fd;
- 		struct uinput_user_dev uinput;
-// 		LogitechDaemonAdaptor *adaptor;
-		bool initializeUInput();
-// 		bool initializeDBUS();
+		LogitechDaemonAdaptor *adaptor;
+		bool initializeDBUS();
+
+	protected:
+		void run();
 
 	public Q_SLOTS:
-		void set_LCD_Brightness( int brightness );
-		void set_LCD_Contrast( int contrast );
-		void set_KB_Brightness( int brightness );
-
-	Q_SIGNALS:
-		void LCDBrightnessSet( int brightness );
-		void LCDContrastSet( int contrast );
-		void KBBrightnessSet( int brightness );
+		void set_lcd_brightness( int brightness );
+		void set_lcd_contrast( int contrast );
+		void set_kb_brightness( int brightness );
 };
 
 #endif //	_LOGITECHDAEMON_H_
