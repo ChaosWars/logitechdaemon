@@ -4,8 +4,11 @@ cmake
 src
 src/CMakeLists.txt
 src/blank.h
+src/dbusobject.cpp
+src/dbusobject.h
+src/dbusthread.cpp
+src/dbusthread.h
 src/logitechdaemon.cpp
-src/logitechdaemon.h
 src/logo.h
 src/main.cpp
 templates

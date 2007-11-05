@@ -17,54 +17,45 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include <libg15.h>
 #include <stdbool.h>
-#include "logitechdaemon.h"
-#include "logitechdaemonglue.h"
+#include <daemon.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <libg15.h>
+#include <libg15render.h>
+#include <dbus/dbus.h>
+#include "dbusthread.h"
+#include "dbusthreadadaptor.h"
+#include "blank.h"
+#include "logo.h"
 
-G_DEFINE_TYPE( LogitechDaemon, logitechdaemon, G_TYPE_OBJECT );
-
-static void logitechdaemon_class_init( LogitechDaemonClass *ldc )
+DBusThread::DBusThread()
 {
-	dbus_g_object_type_install_info( G_TYPE_FROM_CLASS/*G_OBJECT_CLASS*/( ldc ), &dbus_glib_logitechdaemon_object_info );
 }
 
-static void logitechdaemon_init( LogitechDaemon *ld )
+DBusThread::~DBusThread()
 {
+// 	dbusconnection->unregisterObject( "/org/freedesktop/LogitechDaemon" );
+// 	dbusconnection->unregisterService( "org.freedesktop.LogitechDaemon" );
+	exit( EXIT_SUCCESS );
+	wait();
 }
 
-static gboolean logitechdaemon_set_lcd_brightness( LogitechDaemon *ld, gint32 IN_brightness, GError **error )
-{
-	int retval = setLCDBrightness( IN_brightness );
 
-	if( retval < 0 ){
-		g_set_error( error, 0, 0, "Failed to set keyboard brightness\n" );
-		return false;
+
+void DBusThread::run()
+{
+	obj = new DBusObject();
+
+	if( !obj->connectToDBus() ){
+		daemon_log( LOG_ERR, "Failed to connect to DBus.\n" );
+		exit( EXIT_FAILURE );
 	}
-
-	return true;
-}
-
-static gboolean logitechdaemon_set_lcd_contrast( LogitechDaemon *ld, gint32 IN_contrast, GError **error )
-{
-	int retval = setLCDContrast( IN_contrast );
-
-	if( retval < 0 ){
-		g_set_error( error, 0, 0, "Failed to set keyboard brightness\n" );
-		return false;
-	}
-
-	return true;
-}
-
-static gboolean logitechdaemon_set_kb_brightness( LogitechDaemon *ld, gint32 IN_brightness, GError **error )
-{
-	int retval = setKBBrightness( IN_brightness );
-
-	if( retval < 0 ){
-		g_set_error( error, 0, 0, "Failed to set keyboard brightness\n" );
-		return false;
-	}
-
-	return true;
+	
+	exec();
 }

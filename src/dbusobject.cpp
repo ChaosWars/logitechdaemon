@@ -17,54 +17,62 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include <QDBusConnection>
 #include <libg15.h>
-#include <stdbool.h>
-#include "logitechdaemon.h"
-#include "logitechdaemonglue.h"
+#include <daemon.h>
+#include "dbusobject.h"
+#include "dbusobjectadaptor.h"
 
-G_DEFINE_TYPE( LogitechDaemon, logitechdaemon, G_TYPE_OBJECT );
-
-static void logitechdaemon_class_init( LogitechDaemonClass *ldc )
-{
-	dbus_g_object_type_install_info( G_TYPE_FROM_CLASS/*G_OBJECT_CLASS*/( ldc ), &dbus_glib_logitechdaemon_object_info );
-}
-
-static void logitechdaemon_init( LogitechDaemon *ld )
+DBusObject::DBusObject()
 {
 }
 
-static gboolean logitechdaemon_set_lcd_brightness( LogitechDaemon *ld, gint32 IN_brightness, GError **error )
+DBusObject::~DBusObject()
 {
-	int retval = setLCDBrightness( IN_brightness );
+}
 
-	if( retval < 0 ){
-		g_set_error( error, 0, 0, "Failed to set keyboard brightness\n" );
+bool DBusObject::connectToDBus()
+{
+	daemon_log( LOG_INFO, "DBusThread::connectToDBus() : %d\n", QThread::currentThread() );
+	adaptor = new LogitechDaemonAdaptor( this );
+	daemon_log( LOG_INFO, "Created adaptor.\n" );
+	QDBusConnection connection = QDBusConnection::systemBus();
+	daemon_log( LOG_INFO, "Got connection to system bus.\n" );
+
+	if( !connection.registerObject( "/org/freedesktop/LogitechDaemon", this ) ){
+		daemon_log( LOG_ERR, "Unable to register object on system bus.\n" );
 		return false;
+	}else{
+		daemon_log( LOG_INFO, "Registered object on system bus.\n" );
+	}
+		
+	if( !connection.registerService( "org.freedesktop.LogitechDaemon" ) ){
+		daemon_log( LOG_ERR, "Unable to register service.\n" );
+		return false;
+	}else{
+		daemon_log( LOG_INFO, "Registered service.\n" );
 	}
 
+// 	dbusconnection = &connection;
 	return true;
 }
 
-static gboolean logitechdaemon_set_lcd_contrast( LogitechDaemon *ld, gint32 IN_contrast, GError **error )
+void DBusObject::set_lcd_brightness( int brightness )
 {
-	int retval = setLCDContrast( IN_contrast );
-
-	if( retval < 0 ){
-		g_set_error( error, 0, 0, "Failed to set keyboard brightness\n" );
-		return false;
-	}
-
-	return true;
+	setLCDBrightness( brightness );
+	daemon_log( LOG_INFO, "set_LCD_Brightness(%d)\n", brightness );
 }
 
-static gboolean logitechdaemon_set_kb_brightness( LogitechDaemon *ld, gint32 IN_brightness, GError **error )
+void DBusObject::set_lcd_contrast( int contrast )
 {
-	int retval = setKBBrightness( IN_brightness );
-
-	if( retval < 0 ){
-		g_set_error( error, 0, 0, "Failed to set keyboard brightness\n" );
-		return false;
-	}
-
-	return true;
+	setLCDContrast( contrast );
+	daemon_log( LOG_INFO, "set_LCD_Contrast(%d)\n", contrast );
 }
+
+void DBusObject::set_kb_brightness( int brightness )
+{
+	setKBBrightness( brightness );
+	daemon_log( LOG_INFO, "set_KB_Brightness(%d)\n", brightness );
+}
+
+#include "dbusobject.moc"
