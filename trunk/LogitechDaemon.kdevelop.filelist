@@ -6,7 +6,6 @@ src/CMakeLists.txt
 src/blank.h
 src/logitechdaemon.cpp
 src/logitechdaemon.h
-src/logitechdaemonglue.h
 src/logo.h
 src/main.cpp
 templates
