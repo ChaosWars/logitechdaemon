@@ -34,22 +34,16 @@ DBusObject::~DBusObject()
 bool DBusObject::connectToDBus()
 {
 	adaptor = new LogitechDaemonAdaptor( this );
-	daemon_log( LOG_INFO, "Created adaptor.\n" );
 	QDBusConnection connection = QDBusConnection::systemBus();
-	daemon_log( LOG_INFO, "Got connection to system bus.\n" );
 
 	if( !connection.registerObject( "/org/freedesktop/LogitechDaemon", this ) ){
 		daemon_log( LOG_ERR, "Unable to register object on system bus.\n" );
 		return false;
-	}else{
-		daemon_log( LOG_INFO, "Registered object on system bus.\n" );
 	}
 		
 	if( !connection.registerService( "org.freedesktop.LogitechDaemon" ) ){
 		daemon_log( LOG_ERR, "Unable to register service.\n" );
 		return false;
-	}else{
-		daemon_log( LOG_INFO, "Registered service.\n" );
 	}
 
 // 	dbusconnection = &connection;
@@ -59,19 +53,16 @@ bool DBusObject::connectToDBus()
 void DBusObject::set_lcd_brightness( int brightness )
 {
 	setLCDBrightness( brightness );
-	daemon_log( LOG_INFO, "set_LCD_Brightness(%d)\n", brightness );
 }
 
 void DBusObject::set_lcd_contrast( int contrast )
 {
 	setLCDContrast( contrast );
-	daemon_log( LOG_INFO, "set_LCD_Contrast(%d)\n", contrast );
 }
 
 void DBusObject::set_kb_brightness( int brightness )
 {
 	setKBBrightness( brightness );
-	daemon_log( LOG_INFO, "set_KB_Brightness(%d)\n", brightness );
 }
 
 #include "dbusobject.moc"
