@@ -21,9 +21,6 @@
 #define _LOGITECHDAEMON_H_
 
 #include <glib-object.h>
-#include <linux/uinput.h>
-
-#define DAEMON_NAME "LogitechDaemon"
 
 typedef struct _LogitechDaemon {
 	GObject parent;
@@ -33,67 +30,17 @@ typedef struct _LogitechDaemonClass {
 	GObjectClass parent;
 } LogitechDaemonClass;
 
-/* Define before including logitechdaemonglue.h */
+GType logitechdaemon_get_type();
+
+#define LOGITECHDAEMON_TYPE              ( logitechdaemon_get_type() )
+#define LOGITECHDAEMON( object )           ( G_TYPE_CHECK_INSTANCE_CAST( ( object ), LOGITECHDAEMON_TYPE, LogitechDaemon ) )
+#define LOGITECHDAEMON_CLASS( klass )      ( G_TYPE_CHECK_CLASS_CAST( ( klass ), LOGITECHDAEMON_TYPE, LogitechDaemonClass ) )
+#define IS_LOGITECHDAEMON( object )        ( G_TYPE_CHECK_INSTANCE_TYPE( ( object ), LOGITECHDAEMON_TYPE ) )
+#define IS_LOGITECHDAEMON_CLASS( klass )   ( G_TYPE_CHECK_CLASS_TYPE( ( klass ), LOGITECHDAEMON_TYPE ) )
+#define LOGITECHDAEMON_GET_CLASS( obj )    ( G_TYPE_INSTANCE_GET_CLASS( ( obj ), LOGITECHDAEMON_TYPE, LogitechDaemonClass ) )
+
 static gboolean logitechdaemon_set_lcd_brightness( LogitechDaemon *ld, gint32 IN_brightness, GError **error );
 static gboolean logitechdaemon_set_lcd_contrast( LogitechDaemon *ld, gint32 IN_contrast, GError **error );
 static gboolean logitechdaemon_set_kb_brightness( LogitechDaemon *ld, gint32 IN_brightness, GError **error );
-
-#include "logitechdaemonglue.h"
-
-int uinput_fd;
-struct uinput_user_dev uinput;
-LogitechDaemon *ld = NULL;
-
-static gboolean logitechdaemon_set_lcd_brightness( LogitechDaemon *ld, gint32 IN_brightness, GError **error )
-{
-	int retval = setLCDBrightness( IN_brightness );
-
-	if( retval < 0 ){
-		g_set_error( error, 0, 0, "Failed to set keyboard brightness\n" );
-		return false;
-	}
-
-	return true;
-}
-
-static gboolean logitechdaemon_set_lcd_contrast( LogitechDaemon *ld, gint32 IN_contrast, GError **error )
-{
-	int retval = setLCDContrast( IN_contrast );
-
-	if( retval < 0 ){
-		g_set_error( error, 0, 0, "Failed to set keyboard brightness\n" );
-		return false;
-	}
-
-	return true;
-}
-
-static gboolean logitechdaemon_set_kb_brightness( LogitechDaemon *ld, gint32 IN_brightness, GError **error )
-{
-	int retval = setKBBrightness( IN_brightness );
-
-	if( retval < 0 ){
-		g_set_error( error, 0, 0, "Failed to set keyboard brightness\n" );
-		return false;
-	}
-
-	return true;
-}
-
-static void logitech_daemon_class_init( LogitechDaemonClass *logitechdaemonclass )
-{
-	dbus_g_object_type_install_info(G_TYPE_FROM_CLASS( logitechdaemonclass ), &dbus_glib_logitech_daemon_object_info );
-}
-
-static void logitech_daemon_init( LogitechDaemon *logitechdaemon )
-{
-}
-
-G_DEFINE_TYPE(LogitechDaemon, logitech_daemon, G_TYPE_OBJECT);
-
-bool initialize();
-void shutdown();
-bool initializeUInput();
-bool initializeDBUS();
 
 #endif //	_LOGITECHDAEMON_H_
