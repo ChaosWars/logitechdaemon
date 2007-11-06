@@ -71,7 +71,7 @@ void exitLogitechDaemon( int status )
 	exitLibG15();
 	ioctl( uinput_fd, UI_DEV_DESTROY );
 	close( uinput_fd );
-	daemon_log(LOG_INFO, "Shutting down LogitechDaemon");
+	daemon_log(LOG_INFO, "Exiting LogitechDaemon");
 	daemon_retval_send(-1);
 	daemon_signal_done();
 	daemon_pid_file_remove();
