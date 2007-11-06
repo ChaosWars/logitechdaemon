@@ -32,6 +32,7 @@
 #include <linux/uinput.h>
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib-bindings.h>
+#include <pthread.h>
 #include "logitechdaemon.h"
 #include "blank.h"
 #include "logo.h"
@@ -40,28 +41,29 @@
 // #define STANDALONE 1
 
 typedef struct _DBusThread{
-	GThread *thread;
-	GMainLoop *loop;
-	GMainContext *context;
+// 	GMainLoop *loop;
+// 	GMainContext *context;
+	GObject *ld;
 } DBusThread;
 
-DBusGConnection *connection = NULL;
-DBusGProxy *proxy = NULL;
-GObject *ld = NULL;
-int uinput_fd;
+int uinput_fd, quit;
+pthread_t d;
+pthread_attr_t attr;
 struct uinput_user_dev uinput;
 
 DBusThread *dbusthread = NULL;
 
 void exitLogitechDaemon( int status )
 {
-	if( ld != NULL )
-		g_object_unref( ld );
+	if( dbusthread->ld != NULL )
+		g_object_unref( dbusthread->ld );
 
 	if( dbusthread != NULL ){
-		g_main_loop_quit( dbusthread->loop );
-		g_main_loop_unref( dbusthread->loop );
+// 		g_main_loop_quit( dbusthread->loop );
+// 		g_main_loop_unref( dbusthread->loop );
 		g_free( dbusthread );
+// 		free( dbusthread );
+		dbusthread = NULL;
 	}
 	
 	if( writePixmapToLCD( blank_data ) != 0 )
@@ -115,17 +117,16 @@ bool initializeUInput()
 	return true;
 }
 
-static gpointer dbus_thread( gpointer thread )
+void* /*static gpointer*/ dbus_thread( /*gpointer thread*/void *arg )
 {
 	daemon_log( LOG_INFO, "Initializing dbus.\n");
 	DBusMessage *message = NULL;
 	GError *error = NULL;
-	GSource *source = NULL;
 	guint32 request_name_ret;
 
-	DBusThread *t = thread;
-	t->loop = g_main_loop_new( t->context, FALSE );
-	daemon_log( LOG_INFO, "Created thread main loop.\n");
+// 	DBusThread *t = thread;
+// 	t->loop = g_main_loop_new( t->context, FALSE );
+// 	daemon_log( LOG_INFO, "Created thread main loop.\n");
 
 	connection = dbus_g_bus_get( DBUS_BUS_SYSTEM, &error );
 
@@ -134,21 +135,18 @@ static gpointer dbus_thread( gpointer thread )
 		daemon_log( LOG_ERR, "Failed to open connection to system bus: %s\n", error->message );
 		g_error_free( error );
 		exitLogitechDaemon( EXIT_FAILURE );
-		//return false;
 	}else{
 		daemon_log( LOG_INFO, "Got connection on the system bus.\n");
 	}
 
-// 	dbus_connection_setup_with_g_main( connection, t->context );
-	ld = g_object_new( LOGITECHDAEMON_TYPE, NULL );
-	dbus_g_connection_register_g_object (connection, "/org/freedesktop/LogitechDaemon", ld );
+	dbusthread->ld = g_object_new( LOGITECHDAEMON_TYPE, NULL );
+	dbus_g_connection_register_g_object (connection, "/org/freedesktop/LogitechDaemon", dbusthread->ld );
 	proxy = dbus_g_proxy_new_for_name( connection, DBUS_SERVICE_DBUS, DBUS_PATH_DBUS, DBUS_INTERFACE_DBUS );
 
 	if( !org_freedesktop_DBus_request_name( proxy, "org.freedesktop.LogitechDaemon", 0, &request_name_ret, &error ) ){
 		daemon_log( LOG_ERR, "Failed to obtain address on bus: %s\n", error->message );
 		g_error_free( error );
 		exitLogitechDaemon( EXIT_FAILURE );
-		//return false;
 	}else{
 		daemon_log( LOG_INFO, "Obtained address on the system bus.\n");
 	}
@@ -156,36 +154,34 @@ static gpointer dbus_thread( gpointer thread )
 	if (request_name_ret != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) {
 		daemon_log( LOG_ERR, "Adress is already registered on bus\n" );
 		exitLogitechDaemon( EXIT_FAILURE );
-		//return false;
 	}else{
 		daemon_log( LOG_INFO, "Registered address on the system bus.\n");
 	}
 
 	daemon_log( LOG_INFO, "%s successfully negotiated dbus connection.\n", DAEMON_NAME );
 
-// 	source = g_idle_source_new();
-// 	g_source_set_callback( source, logitechdaemon_set_lcd_brightness, NULL, NULL );
-// 	g_source_attach( source, t->context );
-// 	g_source_unref( source );
-	
-	g_main_loop_run( t->loop );
-// 	g_main_loop_unref( t->loop );
+	while( !quit ){
+	}
+
+	daemon_log( LOG_INFO, "Exiting DBUS connection thread.\n" );
+
 }
 
 bool initializeDbus()
 {
 	g_type_init();
-	g_thread_init( NULL );
 	dbusthread = g_new0( DBusThread, 1 );
-	dbusthread->context = g_main_context_new();
-	GError *thread_error = NULL;
-	g_thread_create( dbus_thread, dbusthread, FALSE, &thread_error );
+// 	dbusthread = malloc( sizeof( DBusThread ) );
+// 	dbusthread->context = g_main_context_new();
+// 	GError *thread_error = NULL;
+// 	g_thread_create( dbus_thread, dbusthread, FALSE, &thread_error );
+	pthread_create( &d, NULL, dbus_thread, NULL );
 
-	if( thread_error != NULL ){
-		daemon_log( LOG_ERR, "Error creating dbus thread : %s\n", thread_error->message );
-		g_error_free( thread_error );
-		return false;
-	}
+// 	if( thread_error != NULL ){
+// 		daemon_log( LOG_ERR, "Error creating dbus thread : %s\n", thread_error->message );
+// 		g_error_free( thread_error );
+// 		return false;
+// 	}
 
 	return true;
 }
@@ -290,7 +286,8 @@ int main( int argc, char *argv[] )
 		return retval;
 
 	} else { /* The daemon */
-		int fd, quit = 0;
+		int fd = 0;
+		quit = 0;
 		fd_set fds;
 
 		if (daemon_close_all(-1) < 0) {
@@ -374,6 +371,8 @@ int main( int argc, char *argv[] )
 				}
 			}
 		}
+
+		pthread_join( d, NULL );
 	}
 
 	exitLogitechDaemon( EXIT_SUCCESS );
