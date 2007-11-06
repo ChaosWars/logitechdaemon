@@ -21,7 +21,7 @@ IF( COMPILE_C_VERSION )
 						${G15TOOLS_INCLUDES} )
 	SET( SRC logitechdaemon.c main.c )
 	SET( DBUSXML logitechdaemon.xml )
-	GLIB_BIND_XML_SERVER( DBUSSRC logitechdaemon ${DBUSXML} )
+	GLIB_BIND_XML_SERVER( DBUSSRC logitech_daemon ${DBUSXML} )
 	ADD_EXECUTABLE( logitechdaemon ${SRC} ${DBUSSRC} )
 ENDIF( COMPILE_C_VERSION )
 

@@ -17,30 +17,33 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#ifndef _LOGITECHDAEMON_H_
-#define _LOGITECHDAEMON_H_
+#ifndef _LOGITECH_DAEMON_H_
+#define _LOGITECH_DAEMON_H_
 
 #include <glib-object.h>
 
-typedef struct _LogitechDaemon {
+#define LOGITECH_DAEMON_TYPE                ( logitech_daemon_get_type() )
+#define LOGITECH_DAEMON( object )           ( G_TYPE_CHECK_INSTANCE_CAST( ( object ), LOGITECH_DAEMON_TYPE, LogitechDaemon ) )
+#define LOGITECH_DAEMON_CLASS( klass )      ( G_TYPE_CHECK_CLASS_CAST( ( klass ), LOGITECH_DAEMON_TYPE, LogitechDaemonClass ) )
+#define IS_LOGITECH_DAEMON( object )        ( G_TYPE_CHECK_INSTANCE_TYPE( ( object ), LOGITECH_DAEMON_TYPE ) )
+#define IS_LOGITECH_DAEMON_CLASS( klass )   ( G_TYPE_CHECK_CLASS_TYPE( ( klass ), LOGITECH_DAEMON_TYPE ) )
+#define LOGITECH_DAEMON_GET_CLASS( obj )    ( G_TYPE_INSTANCE_GET_CLASS( ( obj ), LOGITECH_DAEMON_TYPE, LogitechDaemonClass ) )
+
+typedef struct _LogitechDaemon;
+typedef struct _LogitechDaemonClass;
+
+struct _LogitechDaemon{
 	GObject parent;
 } LogitechDaemon;
 
-typedef struct _LogitechDaemonClass {
+struct __LogitechDaemonClass{
 	GObjectClass parent;
 } LogitechDaemonClass;
 
-GType logitechdaemon_get_type();
+GType logitech_daemon_get_type();
 
-#define LOGITECHDAEMON_TYPE              ( logitechdaemon_get_type() )
-#define LOGITECHDAEMON( object )           ( G_TYPE_CHECK_INSTANCE_CAST( ( object ), LOGITECHDAEMON_TYPE, LogitechDaemon ) )
-#define LOGITECHDAEMON_CLASS( klass )      ( G_TYPE_CHECK_CLASS_CAST( ( klass ), LOGITECHDAEMON_TYPE, LogitechDaemonClass ) )
-#define IS_LOGITECHDAEMON( object )        ( G_TYPE_CHECK_INSTANCE_TYPE( ( object ), LOGITECHDAEMON_TYPE ) )
-#define IS_LOGITECHDAEMON_CLASS( klass )   ( G_TYPE_CHECK_CLASS_TYPE( ( klass ), LOGITECHDAEMON_TYPE ) )
-#define LOGITECHDAEMON_GET_CLASS( obj )    ( G_TYPE_INSTANCE_GET_CLASS( ( obj ), LOGITECHDAEMON_TYPE, LogitechDaemonClass ) )
+static gboolean logitech_daemon_set_lcd_brightness ( LogitechDaemon *ld, gint32 IN_brightness, GError **error );
+static gboolean logitech_daemon_set_lcd_contrast ( LogitechDaemon *ld, gint32 IN_contrast, GError **error );
+static gboolean logitech_daemon_set_kb_brightness ( LogitechDaemon *ld, gint32 IN_brightness, GError **error );
 
-static gboolean logitechdaemon_set_lcd_brightness( LogitechDaemon *ld, gint32 IN_brightness, GError **error );
-static gboolean logitechdaemon_set_lcd_contrast( LogitechDaemon *ld, gint32 IN_contrast, GError **error );
-static gboolean logitechdaemon_set_kb_brightness( LogitechDaemon *ld, gint32 IN_brightness, GError **error );
-
-#endif //	_LOGITECHDAEMON_H_
+#endif //	_LOGITECH_DAEMON_H_
