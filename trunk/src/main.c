@@ -32,38 +32,47 @@
 #include <linux/uinput.h>
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib-bindings.h>
-#include <pthread.h>
+#include <glib.h>
 #include "logitechdaemon.h"
 #include "blank.h"
 #include "logo.h"
 
 #define DAEMON_NAME "LogitechDaemon"
-// #define STANDALONE 1
 
 typedef struct _DBusThread{
-// 	GMainLoop *loop;
-// 	GMainContext *context;
-	GObject *ld;
+	GMainLoop *loop;
+	GMainContext *context;
+	LogitechDaemon *ld;
 } DBusThread;
 
 int uinput_fd, quit;
-pthread_t d;
-pthread_attr_t attr;
 struct uinput_user_dev uinput;
-
+GMainLoop *loop;
 DBusThread *dbusthread = NULL;
+
+void signalhandler( int sig )
+{
+	switch( sig ){
+		case SIGINT:
+		case SIGQUIT:
+		case SIGTERM:
+			g_main_loop_quit( loop );
+			g_main_loop_unref( loop );
+			break;
+		default:
+			break;
+	}
+}
 
 void exitLogitechDaemon( int status )
 {
-	if( dbusthread->ld != NULL )
-		g_object_unref( dbusthread->ld );
-
 	if( dbusthread != NULL ){
-// 		g_main_loop_quit( dbusthread->loop );
-// 		g_main_loop_unref( dbusthread->loop );
+		g_main_loop_quit( dbusthread->loop );
+		g_main_loop_unref( dbusthread->loop );
+		if( dbusthread->ld != NULL )
+			g_object_unref( dbusthread->ld );
+
 		g_free( dbusthread );
-// 		free( dbusthread );
-		dbusthread = NULL;
 	}
 	
 	if( writePixmapToLCD( blank_data ) != 0 )
@@ -117,71 +126,30 @@ bool initializeUInput()
 	return true;
 }
 
-void* /*static gpointer*/ dbus_thread( /*gpointer thread*/void *arg )
+static gpointer dbus_thread( gpointer thread )
 {
-	daemon_log( LOG_INFO, "Initializing dbus.\n");
-	DBusMessage *message = NULL;
-	GError *error = NULL;
-	guint32 request_name_ret;
-
-// 	DBusThread *t = thread;
-// 	t->loop = g_main_loop_new( t->context, FALSE );
-// 	daemon_log( LOG_INFO, "Created thread main loop.\n");
-
-	connection = dbus_g_bus_get( DBUS_BUS_SYSTEM, &error );
-
-	if( connection == NULL )
-	{
-		daemon_log( LOG_ERR, "Failed to open connection to system bus: %s\n", error->message );
-		g_error_free( error );
-		exitLogitechDaemon( EXIT_FAILURE );
-	}else{
-		daemon_log( LOG_INFO, "Got connection on the system bus.\n");
-	}
-
-	dbusthread->ld = g_object_new( LOGITECHDAEMON_TYPE, NULL );
-	dbus_g_connection_register_g_object (connection, "/org/freedesktop/LogitechDaemon", dbusthread->ld );
-	proxy = dbus_g_proxy_new_for_name( connection, DBUS_SERVICE_DBUS, DBUS_PATH_DBUS, DBUS_INTERFACE_DBUS );
-
-	if( !org_freedesktop_DBus_request_name( proxy, "org.freedesktop.LogitechDaemon", 0, &request_name_ret, &error ) ){
-		daemon_log( LOG_ERR, "Failed to obtain address on bus: %s\n", error->message );
-		g_error_free( error );
-		exitLogitechDaemon( EXIT_FAILURE );
-	}else{
-		daemon_log( LOG_INFO, "Obtained address on the system bus.\n");
-	}
-
-	if (request_name_ret != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) {
-		daemon_log( LOG_ERR, "Adress is already registered on bus\n" );
-		exitLogitechDaemon( EXIT_FAILURE );
-	}else{
-		daemon_log( LOG_INFO, "Registered address on the system bus.\n");
-	}
-
+	DBusThread *t = thread;
+	t->context = g_main_context_new();
+	t->loop = g_main_loop_new( t->context, FALSE );
+	t->ld = g_object_new( LOGITECH_DAEMON_TYPE, NULL );
 	daemon_log( LOG_INFO, "%s successfully negotiated dbus connection.\n", DAEMON_NAME );
 
-	while( !quit ){
-	}
+	g_main_loop_run( t->loop );
 
-	daemon_log( LOG_INFO, "Exiting DBUS connection thread.\n" );
-
+	daemon_log( LOG_INFO, "Exiting DBUS thread.\n");
 }
 
 bool initializeDbus()
 {
-	g_type_init();
 	dbusthread = g_new0( DBusThread, 1 );
-// 	dbusthread = malloc( sizeof( DBusThread ) );
-// 	dbusthread->context = g_main_context_new();
-// 	GError *thread_error = NULL;
-// 	g_thread_create( dbus_thread, dbusthread, FALSE, &thread_error );
-	pthread_create( &d, NULL, dbus_thread, NULL );
+	GError *thread_error = NULL;
+	g_thread_create( dbus_thread, dbusthread, FALSE, &thread_error );
 
-// 	if( thread_error != NULL ){
-// 		daemon_log( LOG_ERR, "Error creating dbus thread : %s\n", thread_error->message );
-// 		g_error_free( thread_error );
-// 		return false;
-// 	}
+	if( thread_error != NULL ){
+		daemon_log( LOG_ERR, "Error creating dbus thread : %s\n", thread_error->message );
+		g_error_free( thread_error );
+		return false;
+	}
 
 	return true;
 }
@@ -213,27 +181,6 @@ bool initialize()
 
 	return true;
 }
-
-#ifdef STANDALONE
-
-int main( int argc, char *argv[] )
-{
-	g_type_init();
-	GMainLoop *loop;
-	loop = g_main_loop_new( NULL, FALSE );
-	
-	if( !initialize() ){
-		exitLogitechDaemon( EXIT_FAILURE );
-	}else{
-		g_main_loop_run( loop );
-	}
-
-	g_main_loop_unref( loop );
-
-	exitLogitechDaemon( EXIT_SUCCESS );
-}
-
-#else
 
 int main( int argc, char *argv[] )
 {
@@ -286,9 +233,6 @@ int main( int argc, char *argv[] )
 		return retval;
 
 	} else { /* The daemon */
-		int fd = 0;
-		quit = 0;
-		fd_set fds;
 
 		if (daemon_close_all(-1) < 0) {
 			daemon_log(LOG_ERR, "Failed to close all file descriptors: %s", strerror(errno));
@@ -306,13 +250,15 @@ int main( int argc, char *argv[] )
 		}
 
 		/* Initialize signal handling */
-		if (daemon_signal_init(SIGINT, SIGTERM, SIGQUIT, SIGHUP, 0) < 0) {
-			daemon_log(LOG_ERR, "Could not register signal handlers (%s).", strerror(errno));
-			daemon_retval_send(2);
-			exitLogitechDaemon( EXIT_FAILURE );
-		}
+		signal( SIGINT, signalhandler );
+		signal( SIGQUIT, signalhandler );
+		signal( SIGTERM, signalhandler );
 
 		/*... do some further init work here */
+
+		g_type_init();
+		g_thread_init( NULL );
+		loop = g_main_loop_new( NULL, FALSE );
 
 		if( !initialize() ){
 			daemon_log( LOG_ERR, "Failed to initialize LogitechDaemon.\n" );
@@ -322,61 +268,10 @@ int main( int argc, char *argv[] )
 
 		/* Send OK to parent process */
 		daemon_retval_send(0);
-
 		daemon_log(LOG_INFO, "Sucessfully started LogitechDaemon");
 
-		/* Prepare for select() on the signal fd */
-		FD_ZERO(&fds);
-		FD_SET(fd = daemon_signal_fd(), &fds);
-
-		while (!quit) {
-			fd_set fds2 = fds;
-
-			/* Wait for an incoming signal */
-			if (select(FD_SETSIZE, &fds2, 0, 0, 0) < 0) {
-
-				/* If we've been interrupted by an incoming signal, continue */
-				if (errno == EINTR)
-					continue;
-
-				daemon_log(LOG_ERR, "select(): %s", strerror(errno));
-				break;
-			}
-
-			/* Check if a signal has been recieved */
-			if (FD_ISSET(fd, &fds)) {
-				int sig;
-
-				/* Get signal */
-				if ((sig = daemon_signal_next()) <= 0) {
-					daemon_log(LOG_ERR, "daemon_signal_next() failed.");
-					break;
-				}
-
-				/* Dispatch signal */
-				switch (sig) {
-
-					case SIGINT:
-					case SIGQUIT:
-					case SIGTERM:
-						daemon_log(LOG_WARNING, "Got SIGINT, SIGQUIT or SIGTERM");
-						quit = 1;
-						break;
-
-					case SIGHUP:
-						daemon_log(LOG_INFO, "Got a HUP");
-						daemon_exec("/", NULL, "/bin/ls", "ls", (char*) NULL);
-						break;
-
-				}
-			}
-		}
-
-		pthread_join( d, NULL );
+		g_main_loop_run( loop );
+		g_main_loop_unref( loop );
+		exitLogitechDaemon( EXIT_SUCCESS );
 	}
-
-	exitLogitechDaemon( EXIT_SUCCESS );
-
 }
-
-#endif

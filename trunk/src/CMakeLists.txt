@@ -18,9 +18,10 @@ IF( COMPILE_C_VERSION )
 						${CMAKE_CURRENT_BINARY_DIR}
 						${CMAKE_CURRENT_SOURCE_DIR}
 						${LIBDAEMON_INCLUDE_DIR}
-						${G15TOOLS_INCLUDES} )
+						${G15TOOLS_INCLUDES}
+						gthread-2.0 )
 	SET( SRC logitechdaemon.c main.c )
-	SET( DBUSXML logitechdaemon.xml )
+	SET( DBUSXML logitech_daemon.xml )
 	GLIB_BIND_XML_SERVER( DBUSSRC logitech_daemon ${DBUSXML} )
 	ADD_EXECUTABLE( logitechdaemon ${SRC} ${DBUSSRC} )
 ENDIF( COMPILE_C_VERSION )

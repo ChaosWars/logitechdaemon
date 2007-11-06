@@ -12,7 +12,7 @@
 		<method name="set_kb_brightness">
 			<arg name="brightness" type="i" direction="in" />
 		</method>
-		<signal name="lcd_brightness_set" >
+<!--		<signal name="lcd_brightness_set" >
 			<arg name="brightness" type="i" direction="out" />
 		</signal>
 		<signal name="lcd_contrast_set">
@@ -20,6 +20,6 @@
 		</signal>
 		<signal name="kb_brightness_set">
 			<arg name="brightness" type="i" direction="out" />
-		</signal>
+		</signal>-->
 	</interface>
 </node>
