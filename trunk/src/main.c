@@ -121,8 +121,6 @@ bool initializeUInput()
 		return false;
 	}
 
-	daemon_log( LOG_INFO, "%s successfully negotiated uinput.\n", DAEMON_NAME );
-
 	return true;
 }
 
@@ -132,11 +130,7 @@ static gpointer dbus_thread( gpointer thread )
 	t->context = g_main_context_new();
 	t->loop = g_main_loop_new( t->context, FALSE );
 	t->ld = g_object_new( LOGITECH_DAEMON_TYPE, NULL );
-	daemon_log( LOG_INFO, "%s successfully negotiated dbus connection.\n", DAEMON_NAME );
-
 	g_main_loop_run( t->loop );
-
-	daemon_log( LOG_INFO, "Exiting DBUS thread.\n");
 }
 
 bool initializeDbus()

@@ -57,45 +57,33 @@ GType logitech_daemon_get_type()
 
 static void logitech_daemon_class_init( LogitechDaemonClass *klass )
 {
-	daemon_log( LOG_INFO, "logitech_daemon_class_init().\n");
 	GObjectClass *gobject_class = G_OBJECT_CLASS( klass );
 	gobject_class->dispose = logitech_daemon_dispose;
 	gobject_class->finalize = logitech_daemon_finalize;
 	parent_class = g_type_class_peek_parent( klass );
 	g_type_class_add_private( klass, sizeof( LogitechDaemonPrivate ) );
-	daemon_log( LOG_INFO, "Initializing dbus.\n");
 	DBusMessage *message = NULL;
 	GError *error = NULL;
-	daemon_log( LOG_INFO, "klass = %p.\n", klass );
-	daemon_log( LOG_INFO, "Getting connection.\n");
 	klass->connection = dbus_g_bus_get( DBUS_BUS_SYSTEM, &error );
-	daemon_log( LOG_INFO, "klass->connection = %p.\n", klass->connection );
 	
 	if( klass->connection == NULL )
 	{
 		daemon_log( LOG_ERR, "Failed to open connection to system bus: %s\n", error->message );
 		g_error_free( error );
 		return;
-	}else{
-		daemon_log( LOG_INFO, "Got connection on the system bus.\n");
 	}
 	
 	dbus_g_object_type_install_info( LOGITECH_DAEMON_TYPE, &dbus_glib_logitech_daemon_object_info );
-	daemon_log( LOG_INFO, "Installed object info.\n");
 }
 
 static void logitech_daemon_init( GTypeInstance *instance, gpointer g_class )
 {
-	daemon_log( LOG_INFO, "logitech_daemon_init().\n");
 	LogitechDaemon *self = LOGITECH_DAEMON( instance );
-	daemon_log( LOG_INFO, "self = %p.\n", self );
 	self->priv = G_TYPE_INSTANCE_GET_PRIVATE( self, LOGITECH_DAEMON_TYPE, LogitechDaemonPrivate);
 	self->priv = g_new0( LogitechDaemonPrivate,  1 );
-	daemon_log( LOG_INFO, "self->priv = %p.\n", self->priv );
 	self->priv->dispose_has_run = FALSE;
 	LogitechDaemonClass *klass = LOGITECH_DAEMON_GET_CLASS( instance );
 	DBusGProxy *proxy = dbus_g_proxy_new_for_name( klass->connection, DBUS_SERVICE_DBUS, DBUS_PATH_DBUS, DBUS_INTERFACE_DBUS );
-	daemon_log( LOG_INFO, "proxy = %p.\n", proxy );
 
 	GError *error;
 	guint32 request_name_ret;
@@ -103,14 +91,10 @@ static void logitech_daemon_init( GTypeInstance *instance, gpointer g_class )
 	if( !org_freedesktop_DBus_request_name( proxy, "org.freedesktop.LogitechDaemon", 0, &request_name_ret, &error ) ){
 		daemon_log( LOG_ERR, "Failed to obtain address on bus: %s\n", error->message );
 		g_error_free( error );
-	}else{
-		daemon_log( LOG_INFO, "Obtained address on the system bus.\n");
 	}
 
 	if (request_name_ret != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) {
 		daemon_log( LOG_ERR, "Adress is already registered on bus\n" );
-	}else{
-		daemon_log( LOG_INFO, "Registered address on the system bus.\n");
 	}
 
 	dbus_g_connection_register_g_object( klass->connection, "/org/freedesktop/LogitechDaemon", G_OBJECT( instance ) );
@@ -143,7 +127,6 @@ static void logitech_daemon_dispose( GObject *object )
 
 static void logitech_daemon_finalize( GObject *object )
 {
-	daemon_log( LOG_INFO, "logitech_daemon_finalize().\n");
 	LogitechDaemon *self = LOGITECH_DAEMON( object );
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS(parent_class)->finalize( object );
