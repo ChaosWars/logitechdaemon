@@ -20,15 +20,24 @@
 #include <daemon.h>
 #include "dbusthread.h"
 
+/**
+ * 
+ */
 DBusThread::DBusThread()
 {
 }
 
+/**
+ * 
+ */
 DBusThread::~DBusThread()
 {
 	delete obj;
 }
 
+/**
+ * 
+ */
 void DBusThread::shutdown()
 {
 	exit( EXIT_SUCCESS );

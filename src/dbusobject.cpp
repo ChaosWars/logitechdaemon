@@ -23,14 +23,24 @@
 #include "dbusobject.h"
 #include "dbusobjectadaptor.h"
 
+/**
+ * 
+ */
 DBusObject::DBusObject()
 {
 }
 
+/**
+ * 
+ */
 DBusObject::~DBusObject()
 {
 }
 
+/**
+ * 
+ * @return 
+ */
 bool DBusObject::connectToDBus()
 {
 	adaptor = new LogitechDaemonAdaptor( this );

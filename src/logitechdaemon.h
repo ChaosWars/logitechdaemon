@@ -27,23 +27,33 @@
 #define LOGITECH_DAEMON_CLASS( klass )      ( G_TYPE_CHECK_CLASS_CAST( ( klass ), LOGITECH_DAEMON_TYPE, LogitechDaemonClass ) )
 #define IS_LOGITECH_DAEMON( object )        ( G_TYPE_CHECK_INSTANCE_TYPE( ( object ), LOGITECH_DAEMON_TYPE ) )
 #define IS_LOGITECH_DAEMON_CLASS( klass )   ( G_TYPE_CHECK_CLASS_TYPE( ( klass ), LOGITECH_DAEMON_TYPE ) )
-#define LOGITECH_DAEMON_GET_CLASS( obj )    ( G_TYPE_INSTANCE_GET_CLASS( ( obj ), LOGITECH_DAEMON_TYPE, LogitechDaemonClass ) )
+#define LOGITECH_DAEMON_GET_CLASS( object )    ( G_TYPE_INSTANCE_GET_CLASS( ( object ), LOGITECH_DAEMON_TYPE, LogitechDaemonClass ) )
 
-typedef struct _LogitechDaemon;
-typedef struct _LogitechDaemonClass;
+typedef struct _LogitechDaemon LogitechDaemon;
+typedef struct _LogitechDaemonClass LogitechDaemonClass;
+typedef struct _LogitechDaemonPrivate LogitechDaemonPrivate;
 
 struct _LogitechDaemon{
 	GObject parent;
-} LogitechDaemon;
 
-struct __LogitechDaemonClass{
+	/*< private >*/
+	LogitechDaemonPrivate *priv;
+};
+
+struct _LogitechDaemonClass{
 	GObjectClass parent;
-} LogitechDaemonClass;
+
+	/*private>*/
+	DBusGConnection *connection;
+};
 
 GType logitech_daemon_get_type();
-
-static gboolean logitech_daemon_set_lcd_brightness ( LogitechDaemon *ld, gint32 IN_brightness, GError **error );
-static gboolean logitech_daemon_set_lcd_contrast ( LogitechDaemon *ld, gint32 IN_contrast, GError **error );
-static gboolean logitech_daemon_set_kb_brightness ( LogitechDaemon *ld, gint32 IN_brightness, GError **error );
+static void logitech_daemon_class_init( LogitechDaemonClass *klass );
+static void logitech_daemon_init( GTypeInstance *instance, gpointer g_class );
+static void logitech_daemon_dispose( GObject *object );
+static void logitech_daemon_finalize( GObject *object );
+static gboolean logitech_daemon_set_lcd_brightness( LogitechDaemon *ld, gint32 IN_brightness, GError **error );
+static gboolean logitech_daemon_set_lcd_contrast( LogitechDaemon *ld, gint32 IN_contrast, GError **error );
+static gboolean logitech_daemon_set_kb_brightness( LogitechDaemon *ld, gint32 IN_brightness, GError **error );
 
 #endif //	_LOGITECH_DAEMON_H_

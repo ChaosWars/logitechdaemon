@@ -17,22 +17,23 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include <stdlib.h>
 #include <libg15.h>
 #include <stdbool.h>
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib-bindings.h>
+#include <daemon.h>
 #include "logitechdaemon.h"
-#include "logitechdaemonglue.h"
+#include "logitech_daemonglue.h"
 
-typedef struct _LogitechDaemonPrivate;
+static GObjectClass *parent_class;
 
 struct _LogitechDaemonPrivate
 {
-	DBusGConnection *connection;
-	DBusGProxy *proxy;
-} LogitechDaemonPrivate;
+	gboolean dispose_has_run;
+};
 
-GType logitechdaemon_get_type()
+GType logitech_daemon_get_type()
 {
 	static GType type = 0;
 	if ( type == 0 )
@@ -42,37 +43,114 @@ GType logitechdaemon_get_type()
 			sizeof ( LogitechDaemonClass ),
 			NULL,   /* base_init */
 			NULL,   /* base_finalize */
-			NULL,   /* class_init */
+			logitech_daemon_class_init,   /* class_init */
 			NULL,   /* class_finalize */
 			NULL,   /* class_data */
 			sizeof ( LogitechDaemon ),
 			0,      /* n_preallocs */
-			NULL    /* instance_init */
+			logitech_daemon_init    /* instance_init */
 		};
 		type = g_type_register_static ( G_TYPE_OBJECT, "LogitechDaemonType", &info, 0 );
 	}
 	return type;
 }
 
-static void logitechdaemon_class_init( LogitechDaemonClass *klass )
+static void logitech_daemon_class_init( LogitechDaemonClass *klass )
 {
+	daemon_log( LOG_INFO, "logitech_daemon_class_init().\n");
+	GObjectClass *gobject_class = G_OBJECT_CLASS( klass );
+	gobject_class->dispose = logitech_daemon_dispose;
+	gobject_class->finalize = logitech_daemon_finalize;
+	parent_class = g_type_class_peek_parent( klass );
 	g_type_class_add_private( klass, sizeof( LogitechDaemonPrivate ) );
-	dbus_g_object_type_install_info ( G_TYPE_FROM_CLASS( ldc )/*LOGITECH_DAEMON_TYPE*/, &dbus_glib_logitechdaemon_object_info );
+	daemon_log( LOG_INFO, "Initializing dbus.\n");
+	DBusMessage *message = NULL;
+	GError *error = NULL;
+	daemon_log( LOG_INFO, "klass = %p.\n", klass );
+	daemon_log( LOG_INFO, "Getting connection.\n");
+	klass->connection = dbus_g_bus_get( DBUS_BUS_SYSTEM, &error );
+	daemon_log( LOG_INFO, "klass->connection = %p.\n", klass->connection );
+	
+	if( klass->connection == NULL )
+	{
+		daemon_log( LOG_ERR, "Failed to open connection to system bus: %s\n", error->message );
+		g_error_free( error );
+		return;
+	}else{
+		daemon_log( LOG_INFO, "Got connection on the system bus.\n");
+	}
+	
+	dbus_g_object_type_install_info( LOGITECH_DAEMON_TYPE, &dbus_glib_logitech_daemon_object_info );
+	daemon_log( LOG_INFO, "Installed object info.\n");
 }
 
-static void logitechdaemon_init( GTypeInstance *instance, gpointer g_class )
+static void logitech_daemon_init( GTypeInstance *instance, gpointer g_class )
 {
+	daemon_log( LOG_INFO, "logitech_daemon_init().\n");
 	LogitechDaemon *self = LOGITECH_DAEMON( instance );
+	daemon_log( LOG_INFO, "self = %p.\n", self );
 	self->priv = G_TYPE_INSTANCE_GET_PRIVATE( self, LOGITECH_DAEMON_TYPE, LogitechDaemonPrivate);
+	self->priv = g_new0( LogitechDaemonPrivate,  1 );
+	daemon_log( LOG_INFO, "self->priv = %p.\n", self->priv );
+	self->priv->dispose_has_run = FALSE;
+	LogitechDaemonClass *klass = LOGITECH_DAEMON_GET_CLASS( instance );
+	DBusGProxy *proxy = dbus_g_proxy_new_for_name( klass->connection, DBUS_SERVICE_DBUS, DBUS_PATH_DBUS, DBUS_INTERFACE_DBUS );
+	daemon_log( LOG_INFO, "proxy = %p.\n", proxy );
+
+	GError *error;
+	guint32 request_name_ret;
+	
+	if( !org_freedesktop_DBus_request_name( proxy, "org.freedesktop.LogitechDaemon", 0, &request_name_ret, &error ) ){
+		daemon_log( LOG_ERR, "Failed to obtain address on bus: %s\n", error->message );
+		g_error_free( error );
+	}else{
+		daemon_log( LOG_INFO, "Obtained address on the system bus.\n");
+	}
+
+	if (request_name_ret != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) {
+		daemon_log( LOG_ERR, "Adress is already registered on bus\n" );
+	}else{
+		daemon_log( LOG_INFO, "Registered address on the system bus.\n");
+	}
+
+	dbus_g_connection_register_g_object( klass->connection, "/org/freedesktop/LogitechDaemon", G_OBJECT( instance ) );
+	g_object_unref( proxy );
 }
 
-static void logitechdaemon_finalize( GObject *object )
+static void logitech_daemon_dispose( GObject *object )
 {
+	daemon_log( LOG_INFO, "logitech_daemon_dispose().\n");
 	LogitechDaemon *self = LOGITECH_DAEMON( object );
+
+	if( self->priv->dispose_has_run ){
+		/* If dispose did already run, return. */
+		return;
+	}
+	
+	/* Make sure dispose does not run twice. */
+	self->priv->dispose_has_run = TRUE;
+
+  /* 
+	* In dispose, you are supposed to free all types referenced from this
+	* object which might themselves hold a reference to self. Generally,
+	* the most simple solution is to unref all members on which you own a
+	* reference.
+  */
+
+	/* Chain up to the parent class */
+	G_OBJECT_CLASS(parent_class)->dispose( object );
+}
+
+static void logitech_daemon_finalize( GObject *object )
+{
+	daemon_log( LOG_INFO, "logitech_daemon_finalize().\n");
+	LogitechDaemon *self = LOGITECH_DAEMON( object );
+	/* Chain up to the parent class */
+	G_OBJECT_CLASS(parent_class)->finalize( object );
 	g_free( self->priv );
 }
 
-static gboolean logitechdaemon_set_lcd_brightness ( LogitechDaemon *ld, gint32 IN_brightness, GError **error )
+static gboolean logitech_daemon_set_lcd_brightness ( LogitechDaemon *ld, gint32 IN_brightness, GError **error )
 {
 	int retval = setLCDBrightness ( IN_brightness );
 
@@ -85,7 +163,7 @@ static gboolean logitechdaemon_set_lcd_brightness ( LogitechDaemon *ld, gint32 I
 	return true;
 }
 
-static gboolean logitechdaemon_set_lcd_contrast ( LogitechDaemon *ld, gint32 IN_contrast, GError **error )
+static gboolean logitech_daemon_set_lcd_contrast ( LogitechDaemon *ld, gint32 IN_contrast, GError **error )
 {
 	int retval = setLCDContrast ( IN_contrast );
 
@@ -98,7 +176,7 @@ static gboolean logitechdaemon_set_lcd_contrast ( LogitechDaemon *ld, gint32 IN_
 	return true;
 }
 
-static gboolean logitechdaemon_set_kb_brightness ( LogitechDaemon *ld, gint32 IN_brightness, GError **error )
+static gboolean logitech_daemon_set_kb_brightness ( LogitechDaemon *ld, gint32 IN_brightness, GError **error )
 {
 	int retval = setKBBrightness ( IN_brightness );
 
