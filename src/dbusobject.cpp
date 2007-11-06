@@ -46,7 +46,6 @@ bool DBusObject::connectToDBus()
 		return false;
 	}
 
-// 	dbusconnection = &connection;
 	return true;
 }
 

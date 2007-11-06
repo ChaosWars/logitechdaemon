@@ -36,7 +36,6 @@ class DBusObject : public QObject{
 
 	private:
 		LogitechDaemonAdaptor *adaptor;
-		QDBusConnection *dbusconnection;
 
 	public Q_SLOTS:
 		void set_lcd_brightness( int brightness );
