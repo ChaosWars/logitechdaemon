@@ -56,8 +56,10 @@ void signalhandler( int sig )
 
 void exitLogitechDaemon( int status )
 {
-	if( dbus_thread != NULL )
-		delete( dbus_thread );
+	if( dbus_thread != NULL ){
+		dbus_thread->shutdown();
+		delete dbus_thread;
+	}
 
 	if( writePixmapToLCD( blank_data ) != 0 )
 		daemon_log( LOG_ERR, "Error blanking screen.\n" );
@@ -209,7 +211,7 @@ int main( int argc, char *argv[] )
 
 		/* Send OK to parent process */
 		daemon_retval_send(0);
-		daemon_log(LOG_INFO, "Sucessfully started LogitechDaemon");
+		daemon_log(LOG_INFO, "Successfully started LogitechDaemon");
 
 		signal( SIGINT, signalhandler );
 		signal( SIGQUIT, signalhandler );

@@ -28,6 +28,7 @@ class DBusThread : public QThread
 	public:
 		DBusThread();
 		~DBusThread();
+		void shutdown();
 
 	private:
 		DBusObject *obj;

@@ -26,13 +26,14 @@ DBusThread::DBusThread()
 
 DBusThread::~DBusThread()
 {
-// 	dbusconnection->unregisterObject( "/org/freedesktop/LogitechDaemon" );
-// 	dbusconnection->unregisterService( "org.freedesktop.LogitechDaemon" );
+	delete obj;
+}
+
+void DBusThread::shutdown()
+{
 	exit( EXIT_SUCCESS );
 	wait();
 }
-
-
 
 void DBusThread::run()
 {
