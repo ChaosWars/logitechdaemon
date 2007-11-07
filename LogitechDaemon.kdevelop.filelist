@@ -8,7 +8,6 @@ src/dbusobject.cpp
 src/dbusobject.h
 src/dbusthread.cpp
 src/dbusthread.h
-src/logitechdaemon.cpp
 src/logo.h
 src/main.cpp
 templates
