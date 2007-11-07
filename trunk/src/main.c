@@ -33,7 +33,7 @@
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib-bindings.h>
 #include <glib.h>
-#include "logitechdaemon.h"
+#include "dbusobject.h"
 #include "blank.h"
 #include "logo.h"
 
@@ -42,7 +42,7 @@
 typedef struct _DBusThread{
 	GMainLoop *loop;
 	GMainContext *context;
-	LogitechDaemon *ld;
+	DBusObject *dbobj;
 } DBusThread;
 
 int uinput_fd, quit;
@@ -69,8 +69,8 @@ void exitLogitechDaemon( int status )
 	if( dbusthread != NULL ){
 		g_main_loop_quit( dbusthread->loop );
 		g_main_loop_unref( dbusthread->loop );
-		if( dbusthread->ld != NULL )
-			g_object_unref( dbusthread->ld );
+		if( dbusthread->dbobj != NULL )
+			g_object_unref( dbusthread->dbobj );
 
 		g_free( dbusthread );
 	}
@@ -129,7 +129,7 @@ static gpointer dbus_thread( gpointer thread )
 	DBusThread *t = thread;
 	t->context = g_main_context_new();
 	t->loop = g_main_loop_new( t->context, FALSE );
-	t->ld = g_object_new( LOGITECH_DAEMON_TYPE, NULL );
+	t->dbobj = g_object_new( DBUS_OBJECT_TYPE, NULL );
 	g_main_loop_run( t->loop );
 }
 
