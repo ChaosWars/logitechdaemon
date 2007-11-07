@@ -10,18 +10,18 @@ INCLUDE_DIRECTORIES(${DBUS_INCLUDES}
 					${LIBDAEMON_INCLUDE_DIR}
 					${G15TOOLS_INCLUDES}
 					gthread-2.0 )
-SET( SRC logitechdaemon.c main.c )
-SET( DBUSXML logitech_daemon.xml )
-GLIB_BIND_XML_SERVER( DBUSSRC logitech_daemon ${DBUSXML} )
+SET( SRC dbusobject.c main.c )
+SET( DBUSXML dbusobject.xml )
+GLIB_BIND_XML_SERVER( DBUSSRC dbus_object ${DBUSXML} )
 ADD_EXECUTABLE( logitechdaemon ${SRC} ${DBUSSRC} )
 
 TARGET_LINK_LIBRARIES( logitechdaemon
-					gthread-2.0
-					${DBUS_GLIB_LIBRARY}
-					${DBUS_LIBRARY}
-					${GLIB2_LIBRARIES}
-					${LIBDAEMON_LIBRARY}
-					${G15TOOLS_LIBRARY} )
+						gthread-2.0
+						${DBUS_GLIB_LIBRARY}
+						${DBUS_LIBRARY}
+						${GLIB2_LIBRARIES}
+						${LIBDAEMON_LIBRARY}
+						${G15TOOLS_LIBRARY} )
 
 INSTALL( PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/logitech-daemon DESTINATION /etc/rc.d )
 INSTALL( PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/logitech-daemon.conf DESTINATION /etc/dbus-1/system.d )
