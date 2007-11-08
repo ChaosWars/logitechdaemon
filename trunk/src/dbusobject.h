@@ -62,16 +62,8 @@ static gboolean dbus_object_set_lcd_contrast( DBusObject *dbobj, gint32 IN_contr
 static gboolean dbus_object_set_kb_brightness( DBusObject *dbobj, gint32 IN_brightness, GError **error );
 static gboolean dbus_object_blank_screen( DBusObject *dbobj, GError **error );
 static gboolean dbus_object_show_logo( DBusObject *dbobj, GError **error );
-static gint dbus_object_lcd_brightness_set( gint32 IN_brightness );
-static gint dbus_object_lcd_contrast_set( gint32 IN_contrast );
-void(*lcd_brightness_set)(gint32 IN_brightness );
-void(*lcd_contrast_set)(gint32 IN_contrast );
-void(*kb_brightness_set)(gint32 IN_brightness );
-// static gint dbus_object_lcd_brightness_set( gint32 IN_brightness );
-// static gint dbus_object_lcd_contrast_set( gint32 IN_contrast );
-// static gint dbus_object_kb_brightness_set(gint32 IN_brightness );
-// static gint lcd_brightness_set( gint32 IN_brightness );
-// static gint lcd_contrast_set( gint32 IN_contrast );
-// static gint kb_brightness_set(gint32 IN_brightness );
+void(*dbus_object_lcd_brightness_set)(gint32 IN_brightness );
+void(*dbus_object_lcd_contrast_set)(gint32 IN_contrast );
+void(*dbus_object_kb_brightness_set)(gint32 IN_brightness );
 
 #endif //	_DBUS_OBJECT_H_
