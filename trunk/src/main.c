@@ -66,6 +66,14 @@ void signalhandler( int sig )
 
 void exitLogitechDaemon( int status )
 {
+	g15r_clearScreen( canvas, 0 );
+	setKBBrightness( G15_BRIGHTNESS_DARK );
+	setLCDBrightness( G15_BRIGHTNESS_DARK );
+	setLCDContrast( G15_CONTRAST_LOW );
+	setLEDs( 0 );
+
+	/*Deleting the dbus thread destroys the canvas! No drawing to it after this point.*/
+	/* FIXME Write proper code to govern canvas's. Make them on a per-client basis, with one for the main thread?*/
 	if( dbusthread != NULL ){
 		g_main_loop_quit( dbusthread->loop );
 		g_main_loop_unref( dbusthread->loop );
@@ -75,11 +83,6 @@ void exitLogitechDaemon( int status )
 		g_free( dbusthread );
 	}
 
-	g15r_clearScreen( canvas, 0 );
-	setKBBrightness( G15_BRIGHTNESS_DARK );
-	setLCDBrightness( G15_BRIGHTNESS_DARK );
-	setLCDContrast( G15_CONTRAST_LOW );
-	setLEDs( 0 );
 	exitLibG15();
 	ioctl( uinput_fd, UI_DEV_DESTROY );
 	close( uinput_fd );
