@@ -19,13 +19,13 @@
  ***************************************************************************/
 #include <stdlib.h>
 #include <libg15.h>
+#include <libg15render.h>
 #include <stdbool.h>
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib-bindings.h>
 #include <daemon.h>
 #include "dbusobject.h"
 #include "dbusobjectglue.h"
-#include "blank.h"
 #include "logo.h"
 
 static GObjectClass *parent_class;
@@ -67,6 +67,39 @@ static void dbus_object_class_init( DBusObjectClass *klass )
 	DBusMessage *message = NULL;
 	GError *error = NULL;
 	klass->connection = dbus_g_bus_get( DBUS_BUS_SYSTEM, &error );
+
+	lcd_brightness_set = g_signal_new("lcd_brightness_set",
+										DBUS_OBJECT_TYPE,
+										G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
+										0 /* class closure */,
+										NULL /* accumulator */,
+										NULL /* accu_data */,
+										g_cclosure_marshal_VOID__VOID,
+										G_TYPE_NONE /* return_type */,
+										1     /* n_params */,
+										G_TYPE_INT /* param_types */);
+
+	lcd_contrast_set = g_signal_new("lcd_contrast_set",
+									DBUS_OBJECT_TYPE,
+									G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
+									0 /* class closure */,
+									NULL /* accumulator */,
+									NULL /* accu_data */,
+									g_cclosure_marshal_VOID__VOID,
+									G_TYPE_NONE /* return_type */,
+									1     /* n_params */,
+									G_TYPE_INT /* param_types */);
+
+	kb_brightness_set = g_signal_new("kb_brightness_set",
+									 DBUS_OBJECT_TYPE,
+									G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
+									0 /* class closure */,
+									NULL /* accumulator */,
+									NULL /* accu_data */,
+									g_cclosure_marshal_VOID__VOID,
+									G_TYPE_NONE /* return_type */,
+									1     /* n_params */,
+									G_TYPE_INT /* param_types */);
 	
 	if( klass->connection == NULL )
 	{
@@ -74,7 +107,7 @@ static void dbus_object_class_init( DBusObjectClass *klass )
 		g_error_free( error );
 		return;
 	}
-	
+
 	dbus_g_object_type_install_info( DBUS_OBJECT_TYPE, &dbus_glib_dbus_object_object_info );
 }
 
@@ -84,13 +117,14 @@ static void dbus_object_init( GTypeInstance *instance, gpointer g_class )
 	self->priv = G_TYPE_INSTANCE_GET_PRIVATE( self, DBUS_OBJECT_TYPE, DBusObjectPrivate);
 	self->priv = g_new0( DBusObjectPrivate,  1 );
 	self->priv->dispose_has_run = FALSE;
+	canvas = g_new0( g15canvas, 1 );
 	DBusObjectClass *klass = DBUS_OBJECT_GET_CLASS( instance );
 	DBusGProxy *proxy = dbus_g_proxy_new_for_name( klass->connection, DBUS_SERVICE_DBUS, DBUS_PATH_DBUS, DBUS_INTERFACE_DBUS );
 
 	GError *error;
 	guint32 request_name_ret;
 	
-	if( !org_freedesktop_DBus_request_name( proxy, "org.freedesktop.DBusObject", 0, &request_name_ret, &error ) ){
+	if( !org_freedesktop_DBus_request_name( proxy, "org.freedesktop.LogitechDaemon", 0, &request_name_ret, &error ) ){
 		daemon_log( LOG_ERR, "Failed to obtain address on bus: %s\n", error->message );
 		g_error_free( error );
 	}
@@ -99,13 +133,16 @@ static void dbus_object_init( GTypeInstance *instance, gpointer g_class )
 		daemon_log( LOG_ERR, "Adress is already registered on bus\n" );
 	}
 
-	dbus_g_connection_register_g_object( klass->connection, "/org/freedesktop/DBusObject", G_OBJECT( instance ) );
+	dbus_g_connection_register_g_object( klass->connection, "/org/freedesktop/LogitechDaemon", G_OBJECT( instance ) );
 	g_object_unref( proxy );
+
+	g_signal_connect( G_OBJECT( self ), "lcd_brightness_set", G_CALLBACK( lcd_brightness_set ), NULL );
+	g_signal_connect( G_OBJECT( self ), "lcd_contrast_set", G_CALLBACK( lcd_contrast_set ), NULL );
+	g_signal_connect( G_OBJECT( self ), "kb_brightness_set", G_CALLBACK( kb_brightness_set ), NULL );
 }
 
 static void dbus_object_dispose( GObject *object )
 {
-	daemon_log( LOG_INFO, "dbus_object_dispose().\n");
 	DBusObject *self = DBUS_OBJECT( object );
 
 	if( self->priv->dispose_has_run ){
@@ -133,9 +170,10 @@ static void dbus_object_finalize( GObject *object )
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS(parent_class)->finalize( object );
 	g_free( self->priv );
+	g_free( canvas );
 }
 
-static gboolean dbus_object_set_lcd_brightness( DBusObject *ld, gint32 IN_brightness, GError **error )
+static gboolean dbus_object_set_lcd_brightness( DBusObject *dbobj, gint32 IN_brightness, GError **error )
 {
 	int retval = setLCDBrightness( IN_brightness );
 
@@ -145,10 +183,11 @@ static gboolean dbus_object_set_lcd_brightness( DBusObject *ld, gint32 IN_bright
 		return false;
 	}
 
+ 	g_signal_emit( dbobj, lcd_brightness_set, IN_brightness );
 	return true;
 }
 
-static gboolean dbus_object_set_lcd_contrast( DBusObject *ld, gint32 IN_contrast, GError **error )
+static gboolean dbus_object_set_lcd_contrast( DBusObject *dbobj, gint32 IN_contrast, GError **error )
 {
 	int retval = setLCDContrast( IN_contrast );
 
@@ -158,10 +197,11 @@ static gboolean dbus_object_set_lcd_contrast( DBusObject *ld, gint32 IN_contrast
 		return false;
 	}
 
+ 	g_signal_emit( dbobj, lcd_contrast_set, IN_contrast );
 	return true;
 }
 
-static gboolean dbus_object_set_kb_brightness( DBusObject *ld, gint32 IN_brightness, GError **error )
+static gboolean dbus_object_set_kb_brightness( DBusObject *dbobj, gint32 IN_brightness, GError **error )
 {
 	int retval = setKBBrightness ( IN_brightness );
 
@@ -171,27 +211,38 @@ static gboolean dbus_object_set_kb_brightness( DBusObject *ld, gint32 IN_brightn
 		return false;
 	}
 
+ 	g_signal_emit( dbobj, kb_brightness_set, IN_brightness );
 	return true;
 }
 
-static gboolean dbus_object_blank_screen( DBusObject *ld, GError **error )
+static gboolean dbus_object_blank_screen( DBusObject *dbobj, GError **error )
 {
-	if( writePixmapToLCD( blank_data ) != 0 ){
-		daemon_log( LOG_ERR, "Error blanking screen.\n" );
-		g_set_error( error, 0, 0, "Failed to write to screen.\n" );
-		return false;
-	}
-
+	g15r_clearScreen( canvas, 0 );
+	writePixmapToLCD( canvas->buffer );
 	return true;
 }
 
-static gboolean dbus_object_show_logo( DBusObject *ld, GError **error )
+static gboolean dbus_object_show_logo( DBusObject *dbobj, GError **error )
 {
-	if( writePixmapToLCD( logo_data ) != 0 ){
-		daemon_log( LOG_ERR, "Error displaying logo.\n" );
-		g_set_error( error, 0, 0, "Failed to write to screen.\n" );
-		return false;
-	}
+// 	if( writePixmapToLCD( logo_data ) != 0 ){
+// 		daemon_log( LOG_ERR, "Error displaying logo.\n" );
+// 		g_set_error( error, 0, 0, "Failed to write to screen.\n" );
+// 		return false;
+// 	}
 
+	memcpy( canvas->buffer, logo_data, G15_BUFFER_LEN );
+	writePixmapToLCD( canvas->buffer );
 	return true;
 }
+
+// static gint dbus_object_lcd_brightness_set( gint32 IN_brightness )
+// {
+// }
+// 
+// static gint dbus_object_lcd_contrast_set( gint32 IN_contrast )
+// {
+// }
+// 
+// static gint dbus_object_kb_brightness_set(gint32 IN_brightness )
+// {
+// }

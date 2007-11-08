@@ -4,19 +4,17 @@
 	<interface name="org.freedesktop.LogitechDaemon">
 		<annotation name="org.freedesktop.DBus.GLib.CSymbol" value="dbus_object"/>
 		<method name="set_lcd_brightness" >
-			<arg name="brightness" type="i" direction="in" />
+			<arg name="brightness" type="i" direction="in"/>
 		</method>
 		<method name="set_lcd_contrast">
-			<arg name="contrast" type="i" direction="in" />
+			<arg name="contrast" type="i" direction="in"/>
 		</method>
 		<method name="set_kb_brightness">
-			<arg name="brightness" type="i" direction="in" />
+			<arg name="brightness" type="i" direction="in"/>
 		</method>
-		<method name="blank_screen">
-		</method>
-		<method name="show_logo">
-		</method>
-		<!--		<signal name="lcd_brightness_set" >
+		<method name="blank_screen"/>
+		<method name="show_logo"/>
+		<signal name="lcd_brightness_set" >
 			<arg name="brightness" type="i" direction="out" />
 		</signal>
 		<signal name="lcd_contrast_set">
@@ -24,6 +22,6 @@
 		</signal>
 		<signal name="kb_brightness_set">
 			<arg name="brightness" type="i" direction="out" />
-		</signal>-->
+		</signal>
 	</interface>
 </node>

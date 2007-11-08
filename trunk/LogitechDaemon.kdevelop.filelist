@@ -3,13 +3,7 @@ CMakeLists.txt
 cmake
 src
 src/CMakeLists.txt
-src/blank.h
 src/dbusobject.c
-src/dbusobject.cpp
 src/dbusobject.h
-src/dbusthread.c
-src/dbusthread.cpp
-src/dbusthread.h
 src/logo.h
-src/main.cpp
 templates
