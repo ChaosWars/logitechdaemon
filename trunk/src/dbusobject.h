@@ -63,4 +63,4 @@ static gboolean dbus_object_set_kb_brightness( DBusObject *object, gint32 IN_bri
 static gboolean dbus_object_blank_screen( DBusObject *object, GError **error );
 static gboolean dbus_object_show_logo( DBusObject *object, GError **error );
 
-#endif //	_DBUS_OBJECT_H_
+#endif /*_DBUS_OBJECT_H_*/

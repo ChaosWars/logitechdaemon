@@ -179,7 +179,6 @@ bool initialize()
 
 int main( int argc, char *argv[] )
 {
-	int error;
 	pid_t pid;
 
 	/* Set indetification string for the daemon for both syslog and PID file */

@@ -73,7 +73,6 @@ static void dbus_object_class_init ( DBusObjectClass *klass )
 	gobject_class->finalize = dbus_object_finalize;
 	parent_class = g_type_class_peek_parent ( klass );
 	g_type_class_add_private ( klass, sizeof ( DBusObjectPrivate ) );
-	DBusMessage *message = NULL;
 	GError *error = NULL;
 	klass->connection = dbus_g_bus_get ( DBUS_BUS_SYSTEM, &error );
 
@@ -232,11 +231,11 @@ static gboolean dbus_object_blank_screen ( DBusObject *object, GError **error )
 
 static gboolean dbus_object_show_logo ( DBusObject *object, GError **error )
 {
-// 	if( writePixmapToLCD( logo_data ) != 0 ){
-// 		daemon_log( LOG_ERR, "Error displaying logo.\n" );
-// 		g_set_error( error, 0, 0, "Failed to write to screen.\n" );
-// 		return false;
-// 	}
+/* 	if( writePixmapToLCD( logo_data ) != 0 ){
+		daemon_log( LOG_ERR, "Error displaying logo.\n" );
+		g_set_error( error, 0, 0, "Failed to write to screen.\n" );
+		return false;
+}*/
 
 	memcpy ( canvas->buffer, logo_data, G15_BUFFER_LEN );
 	writePixmapToLCD ( canvas->buffer );
