@@ -68,38 +68,38 @@ static void dbus_object_class_init( DBusObjectClass *klass )
 	GError *error = NULL;
 	klass->connection = dbus_g_bus_get( DBUS_BUS_SYSTEM, &error );
 
-	lcd_brightness_set = g_signal_new("lcd_brightness_set",
-										DBUS_OBJECT_TYPE,
-										G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
-										0 /* class closure */,
-										NULL /* accumulator */,
-										NULL /* accu_data */,
-										g_cclosure_marshal_VOID__VOID,
-										G_TYPE_NONE /* return_type */,
-										1     /* n_params */,
-										G_TYPE_INT /* param_types */);
+	dbus_object_lcd_brightness_set = g_signal_new("lcd_brightness_set",
+													DBUS_OBJECT_TYPE,
+													G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
+													0 /* class closure */,
+													NULL /* accumulator */,
+													NULL /* accu_data */,
+													g_cclosure_marshal_VOID__VOID,
+													G_TYPE_NONE /* return_type */,
+													1     /* n_params */,
+													G_TYPE_INT /* param_types */);
 
-	lcd_contrast_set = g_signal_new("lcd_contrast_set",
-									DBUS_OBJECT_TYPE,
-									G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
-									0 /* class closure */,
-									NULL /* accumulator */,
-									NULL /* accu_data */,
-									g_cclosure_marshal_VOID__VOID,
-									G_TYPE_NONE /* return_type */,
-									1     /* n_params */,
-									G_TYPE_INT /* param_types */);
+	dbus_object_lcd_contrast_set = g_signal_new("lcd_contrast_set",
+												DBUS_OBJECT_TYPE,
+												G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
+												0 /* class closure */,
+												NULL /* accumulator */,
+												NULL /* accu_data */,
+												g_cclosure_marshal_VOID__VOID,
+												G_TYPE_NONE /* return_type */,
+												1     /* n_params */,
+												G_TYPE_INT /* param_types */);
 
-	kb_brightness_set = g_signal_new("kb_brightness_set",
-									 DBUS_OBJECT_TYPE,
-									G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
-									0 /* class closure */,
-									NULL /* accumulator */,
-									NULL /* accu_data */,
-									g_cclosure_marshal_VOID__VOID,
-									G_TYPE_NONE /* return_type */,
-									1     /* n_params */,
-									G_TYPE_INT /* param_types */);
+	dbus_object_kb_brightness_set = g_signal_new("kb_brightness_set",
+												DBUS_OBJECT_TYPE,
+												G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
+												0 /* class closure */,
+												NULL /* accumulator */,
+												NULL /* accu_data */,
+												g_cclosure_marshal_VOID__INT,
+												G_TYPE_NONE /* return_type */,
+												1     /* n_params */,
+												G_TYPE_INT /* param_types */);
 	
 	if( klass->connection == NULL )
 	{
@@ -136,9 +136,9 @@ static void dbus_object_init( GTypeInstance *instance, gpointer g_class )
 	dbus_g_connection_register_g_object( klass->connection, "/org/freedesktop/LogitechDaemon", G_OBJECT( instance ) );
 	g_object_unref( proxy );
 
-	g_signal_connect( G_OBJECT( self ), "lcd_brightness_set", G_CALLBACK( lcd_brightness_set ), NULL );
-	g_signal_connect( G_OBJECT( self ), "lcd_contrast_set", G_CALLBACK( lcd_contrast_set ), NULL );
-	g_signal_connect( G_OBJECT( self ), "kb_brightness_set", G_CALLBACK( kb_brightness_set ), NULL );
+// 	g_signal_connect( G_OBJECT( self ), "lcd_brightness_set", G_CALLBACK( dbus_object_lcd_brightness_set ), NULL );
+// 	g_signal_connect( G_OBJECT( self ), "lcd_contrast_set", G_CALLBACK( dbus_object_lcd_contrast_set ), NULL );
+// 	g_signal_connect( G_OBJECT( self ), "kb_brightness_set", G_CALLBACK( dbus_object_kb_brightness_set ), NULL );
 }
 
 static void dbus_object_dispose( GObject *object )
@@ -179,11 +179,11 @@ static gboolean dbus_object_set_lcd_brightness( DBusObject *dbobj, gint32 IN_bri
 
 	if ( retval < 0 )
 	{
-		g_set_error( error, 0, 0, "Failed to set keyboard brightness\n" );
+		g_set_error( error, 0, 0, "Failed to set LCD brightness\n" );
 		return false;
 	}
 
- 	g_signal_emit( dbobj, lcd_brightness_set, IN_brightness );
+	g_signal_emit_by_name( dbobj, "lcd_brightness_set", IN_brightness );
 	return true;
 }
 
@@ -193,11 +193,11 @@ static gboolean dbus_object_set_lcd_contrast( DBusObject *dbobj, gint32 IN_contr
 
 	if ( retval < 0 )
 	{
-		g_set_error( error, 0, 0, "Failed to set keyboard brightness\n" );
+		g_set_error( error, 0, 0, "Failed to set LCD contrast\n" );
 		return false;
 	}
 
- 	g_signal_emit( dbobj, lcd_contrast_set, IN_contrast );
+	g_signal_emit_by_name( dbobj, "lcd_contrast_set", IN_contrast );
 	return true;
 }
 
@@ -211,7 +211,7 @@ static gboolean dbus_object_set_kb_brightness( DBusObject *dbobj, gint32 IN_brig
 		return false;
 	}
 
- 	g_signal_emit( dbobj, kb_brightness_set, IN_brightness );
+	g_signal_emit_by_name( dbobj, "kb_brightness_set", IN_brightness );
 	return true;
 }
 
@@ -234,15 +234,3 @@ static gboolean dbus_object_show_logo( DBusObject *dbobj, GError **error )
 	writePixmapToLCD( canvas->buffer );
 	return true;
 }
-
-// static gint dbus_object_lcd_brightness_set( gint32 IN_brightness )
-// {
-// }
-// 
-// static gint dbus_object_lcd_contrast_set( gint32 IN_contrast )
-// {
-// }
-// 
-// static gint dbus_object_kb_brightness_set(gint32 IN_brightness )
-// {
-// }
