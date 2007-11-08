@@ -29,12 +29,12 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <libg15.h>
+#include <libg15render.h>
 #include <linux/uinput.h>
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib-bindings.h>
 #include <glib.h>
 #include "dbusobject.h"
-#include "blank.h"
 #include "logo.h"
 
 #define DAEMON_NAME "LogitechDaemon"
@@ -74,10 +74,8 @@ void exitLogitechDaemon( int status )
 
 		g_free( dbusthread );
 	}
-	
-	if( writePixmapToLCD( blank_data ) != 0 )
-		daemon_log( LOG_ERR, "Error blanking screen.\n" );
 
+	g15r_clearScreen( canvas, 0 );
 	setKBBrightness( G15_BRIGHTNESS_DARK );
 	setLCDBrightness( G15_BRIGHTNESS_DARK );
 	setLCDContrast( G15_CONTRAST_LOW );
