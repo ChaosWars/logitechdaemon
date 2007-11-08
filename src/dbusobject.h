@@ -47,9 +47,9 @@ struct _DBusObjectClass{
 
 	/*<private>*/
 	DBusGConnection *connection;
-
-	/*<signals>*/
-	
+	void(*dbus_object_lcd_brightness_set)( DBusObject *object, gint32 IN_brightness );
+	void(*dbus_object_lcd_contrast_set)( DBusObject *object, gint32 IN_contrast );
+	void(*dbus_object_kb_brightness_set)( DBusObject *object, gint32 IN_brightness );
 };
 
 GType dbus_object_get_type();
@@ -57,13 +57,10 @@ static void dbus_object_class_init( DBusObjectClass *klass );
 static void dbus_object_init( GTypeInstance *instance, gpointer g_class );
 static void dbus_object_dispose( GObject *object );
 static void dbus_object_finalize( GObject *object );
-static gboolean dbus_object_set_lcd_brightness( DBusObject *dbobj, gint32 IN_brightness, GError **error );
-static gboolean dbus_object_set_lcd_contrast( DBusObject *dbobj, gint32 IN_contrast, GError **error );
-static gboolean dbus_object_set_kb_brightness( DBusObject *dbobj, gint32 IN_brightness, GError **error );
-static gboolean dbus_object_blank_screen( DBusObject *dbobj, GError **error );
-static gboolean dbus_object_show_logo( DBusObject *dbobj, GError **error );
-void(*dbus_object_lcd_brightness_set)(gint32 IN_brightness );
-void(*dbus_object_lcd_contrast_set)(gint32 IN_contrast );
-void(*dbus_object_kb_brightness_set)(gint32 IN_brightness );
+static gboolean dbus_object_set_lcd_brightness( DBusObject *object, gint32 IN_brightness, GError **error );
+static gboolean dbus_object_set_lcd_contrast( DBusObject *object, gint32 IN_contrast, GError **error );
+static gboolean dbus_object_set_kb_brightness( DBusObject *object, gint32 IN_brightness, GError **error );
+static gboolean dbus_object_blank_screen( DBusObject *object, GError **error );
+static gboolean dbus_object_show_logo( DBusObject *object, GError **error );
 
 #endif //	_DBUS_OBJECT_H_
