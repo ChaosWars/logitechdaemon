@@ -82,7 +82,7 @@ static void dbus_object_class_init ( DBusObjectClass *klass )
 												G_STRUCT_OFFSET( DBusObjectClass, dbus_object_lcd_brightness_set ) /* class closure */,
 												NULL /* accumulator */,
 												NULL /* accu_data */,
-												g_cclosure_marshal_VOID__VOID,
+												g_cclosure_marshal_VOID__INT,
 												G_TYPE_NONE /* return_type */,
 												1     /* n_params */,
 												G_TYPE_INT /* param_types */ );
@@ -93,7 +93,7 @@ static void dbus_object_class_init ( DBusObjectClass *klass )
 												G_STRUCT_OFFSET( DBusObjectClass, dbus_object_lcd_contrast_set ) /* class closure */,
 												NULL /* accumulator */,
 												NULL /* accu_data */,
-												g_cclosure_marshal_VOID__VOID,
+												g_cclosure_marshal_VOID__INT,
 												G_TYPE_NONE /* return_type */,
 												1     /* n_params */,
 												G_TYPE_INT /* param_types */ );

@@ -45,10 +45,16 @@ typedef struct _DBusThread{
 	DBusObject *dbobj;
 } DBusThread;
 
-int uinput_fd, quit;
+typedef struct _GetKeyThread{
+	GMainLoop *loop;
+	GMainContext *context;
+} GetKeyThread;
+
+int uinput_fd/*, quit*/;
 struct uinput_user_dev uinput;
-GMainLoop *loop;
+GMainLoop *loop = NULL;
 DBusThread *dbusthread = NULL;
+GThread *dbus_thread = NULL;
 
 void signalhandler( int sig )
 {
@@ -57,7 +63,6 @@ void signalhandler( int sig )
 		case SIGQUIT:
 		case SIGTERM:
 			g_main_loop_quit( loop );
-			g_main_loop_unref( loop );
 			break;
 		default:
 			break;
@@ -76,20 +81,27 @@ void exitLogitechDaemon( int status )
 	/* FIXME Write proper code to govern canvas's. Make them on a per-client basis, with one for the main thread?*/
 	if( dbusthread != NULL ){
 		g_main_loop_quit( dbusthread->loop );
-		g_main_loop_unref( dbusthread->loop );
-		if( dbusthread->dbobj != NULL )
-			g_object_unref( dbusthread->dbobj );
-
+		g_thread_join( dbus_thread );
 		g_free( dbusthread );
+		dbusthread = NULL;
+		dbus_thread = NULL;
 	}
 
-	exitLibG15();
+	
+
+	if( exitLibG15() != G15_NO_ERROR )
+		daemon_log(LOG_ERR, "Failed to exit libg15");
+
 	ioctl( uinput_fd, UI_DEV_DESTROY );
 	close( uinput_fd );
 	daemon_log(LOG_INFO, "Exiting LogitechDaemon");
 	daemon_retval_send(-1);
 	daemon_signal_done();
 	daemon_pid_file_remove();
+
+	if( loop != NULL )
+		g_main_loop_unref( loop );
+
 	exit( status );
 }
 
@@ -125,20 +137,38 @@ bool initializeUInput()
 	return true;
 }
 
-static gpointer dbus_thread( gpointer thread )
+static gpointer dbus_thread_callback( gpointer thread )
 {
+	int retval;
 	DBusThread *t = thread;
 	t->context = g_main_context_new();
 	t->loop = g_main_loop_new( t->context, FALSE );
 	t->dbobj = g_object_new( DBUS_OBJECT_TYPE, NULL );
 	g_main_loop_run( t->loop );
+
+	if( t->dbobj != NULL ){
+		g_object_unref( t->dbobj );
+	}
+
+	g_main_loop_unref( t->loop );
+	g_thread_exit( &retval );
+}
+
+static gpointer get_key_thread_callback( gpointer thread )
+{
+	int retval;
+	GetKeyThread *t = thread;
+	t->context = g_main_context_new();
+	t->loop = g_main_loop_new( t->context, FALSE );
+	g_main_loop_run( t->loop );
+	g_thread_exit( &retval );
 }
 
 bool initializeDbus()
 {
 	dbusthread = g_new0( DBusThread, 1 );
 	GError *thread_error = NULL;
-	g_thread_create( dbus_thread, dbusthread, FALSE, &thread_error );
+	dbus_thread = g_thread_create( dbus_thread_callback, dbusthread, TRUE, &thread_error );
 
 	if( thread_error != NULL ){
 		daemon_log( LOG_ERR, "Error creating dbus thread : %s\n", thread_error->message );
@@ -265,7 +295,6 @@ int main( int argc, char *argv[] )
 		daemon_log(LOG_INFO, "Sucessfully started LogitechDaemon");
 
 		g_main_loop_run( loop );
-		g_main_loop_unref( loop );
 		exitLogitechDaemon( EXIT_SUCCESS );
 	}
 }
