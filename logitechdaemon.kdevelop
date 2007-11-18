@@ -136,7 +136,6 @@
     </codecompletion>
     <references>
       <pcs>Qt4</pcs>
-      <pcs>Common</pcs>
     </references>
     <qt>
       <used>false</used>

@@ -54,7 +54,9 @@ int uinput_fd/*, quit*/;
 struct uinput_user_dev uinput;
 GMainLoop *loop = NULL;
 DBusThread *dbusthread = NULL;
+GetKeyThread *getkeythread = NULL;
 GThread *dbus_thread = NULL;
+GThread *get_key_thread = NULL;
 
 void signalhandler( int sig )
 {
@@ -72,6 +74,7 @@ void signalhandler( int sig )
 void exitLogitechDaemon( int status )
 {
 	g15r_clearScreen( canvas, 0 );
+	writePixmapToLCD( canvas->buffer );
 	setKBBrightness( G15_BRIGHTNESS_DARK );
 	setLCDBrightness( G15_BRIGHTNESS_DARK );
 	setLCDContrast( G15_CONTRAST_LOW );
@@ -87,7 +90,7 @@ void exitLogitechDaemon( int status )
 		dbus_thread = NULL;
 	}
 
-	
+
 
 	if( exitLibG15() != G15_NO_ERROR )
 		daemon_log(LOG_ERR, "Failed to exit libg15");
@@ -128,7 +131,7 @@ bool initializeUInput()
 	}
 
 	write( uinput_fd, &uinput, sizeof( uinput ) );
-	
+
 	if( ioctl( uinput_fd, UI_DEV_CREATE ) ){
 		daemon_log( LOG_ERR, "Unable to create uinput device.\n" );
 		return false;
@@ -161,6 +164,7 @@ static gpointer get_key_thread_callback( gpointer thread )
 	t->context = g_main_context_new();
 	t->loop = g_main_loop_new( t->context, FALSE );
 	g_main_loop_run( t->loop );
+	g_main_loop_unref( t->loop );
 	g_thread_exit( &retval );
 }
 
@@ -182,13 +186,13 @@ bool initializeDbus()
 bool initialize()
 {
 	int error;
-	
+
 	if( !initializeUInput() )
 		return false;
 
 	if( !initializeDbus() )
 		return false;
-	
+
 	error = initLibG15();
 
 	if( error != G15_NO_ERROR ){
@@ -277,6 +281,7 @@ int main( int argc, char *argv[] )
 		signal( SIGINT, signalhandler );
 		signal( SIGQUIT, signalhandler );
 		signal( SIGTERM, signalhandler );
+        signal( SIGHUP, signalhandler );
 
 		/*... do some further init work here */
 

@@ -33,8 +33,6 @@ typedef struct _DBusObject DBusObject;
 typedef struct _DBusObjectClass DBusObjectClass;
 typedef struct _DBusObjectPrivate DBusObjectPrivate;
 
-g15canvas *canvas;
-
 struct _DBusObject{
 	GObject parent;
 

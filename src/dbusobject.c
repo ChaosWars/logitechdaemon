@@ -42,6 +42,7 @@ static GObjectClass *parent_class;
 struct _DBusObjectPrivate
 {
 	gboolean dispose_has_run;
+    g15canvas *canvas;
 };
 
 GType dbus_object_get_type()
@@ -125,7 +126,7 @@ static void dbus_object_init ( GTypeInstance *instance, gpointer g_class )
 	self->priv = G_TYPE_INSTANCE_GET_PRIVATE ( self, DBUS_OBJECT_TYPE, DBusObjectPrivate );
 	self->priv = g_new0 ( DBusObjectPrivate,  1 );
 	self->priv->dispose_has_run = FALSE;
-	canvas = g_new0 ( g15canvas, 1 );
+	self->priv->canvas = g_new0 ( g15canvas, 1 );
 	DBusObjectClass *klass = DBUS_OBJECT_GET_CLASS ( instance );
 	DBusGProxy *proxy = dbus_g_proxy_new_for_name ( klass->connection, DBUS_SERVICE_DBUS, DBUS_PATH_DBUS, DBUS_INTERFACE_DBUS );
 
@@ -176,8 +177,8 @@ static void dbus_object_finalize ( GObject *object )
 	DBusObject *self = DBUS_OBJECT ( object );
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS ( parent_class )->finalize ( object );
+    g_free ( self->priv->canvas );
 	g_free ( self->priv );
-	g_free ( canvas );
 }
 
 static gboolean dbus_object_set_lcd_brightness ( DBusObject *object, gint32 IN_brightness, GError **error )
@@ -224,20 +225,14 @@ static gboolean dbus_object_set_kb_brightness ( DBusObject *object, gint32 IN_br
 
 static gboolean dbus_object_blank_screen ( DBusObject *object, GError **error )
 {
-	g15r_clearScreen ( canvas, 0 );
-	writePixmapToLCD ( canvas->buffer );
+	g15r_clearScreen ( object->priv->canvas, 0 );
+	writePixmapToLCD ( object->priv->canvas->buffer );
 	return true;
 }
 
 static gboolean dbus_object_show_logo ( DBusObject *object, GError **error )
 {
-/* 	if( writePixmapToLCD( logo_data ) != 0 ){
-		daemon_log( LOG_ERR, "Error displaying logo.\n" );
-		g_set_error( error, 0, 0, "Failed to write to screen.\n" );
-		return false;
-}*/
-
-	memcpy ( canvas->buffer, logo_data, G15_BUFFER_LEN );
-	writePixmapToLCD ( canvas->buffer );
+	memcpy ( object->priv->canvas->buffer, logo_data, G15_BUFFER_LEN );
+	writePixmapToLCD ( object->priv->canvas->buffer );
 	return true;
 }
