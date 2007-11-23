@@ -36,6 +36,7 @@
 #include <glib.h>
 #include "dbusobject.h"
 #include "logo.h"
+#include "handlekeys.h"
 
 #define DAEMON_NAME "LogitechDaemon"
 
@@ -46,17 +47,18 @@ typedef struct _DBusThread{
 } DBusThread;
 
 typedef struct _GetKeyThread{
-	GMainLoop *loop;
+    gboolean run;
 	GMainContext *context;
 } GetKeyThread;
 
-int uinput_fd/*, quit*/;
+int uinput_fd;
 struct uinput_user_dev uinput;
 GMainLoop *loop = NULL;
 DBusThread *dbusthread = NULL;
 GetKeyThread *getkeythread = NULL;
 GThread *dbus_thread = NULL;
 GThread *get_key_thread = NULL;
+g15canvas *canvas = NULL;
 
 void signalhandler( int sig )
 {
@@ -73,15 +75,23 @@ void signalhandler( int sig )
 
 void exitLogitechDaemon( int status )
 {
-	g15r_clearScreen( canvas, 0 );
-	writePixmapToLCD( canvas->buffer );
+    g15r_clearScreen( canvas, 0 );
+    writePixmapToLCD( canvas->buffer );
+    g_free( canvas );
 	setKBBrightness( G15_BRIGHTNESS_DARK );
 	setLCDBrightness( G15_BRIGHTNESS_DARK );
 	setLCDContrast( G15_CONTRAST_LOW );
 	setLEDs( 0 );
 
-	/*Deleting the dbus thread destroys the canvas! No drawing to it after this point.*/
-	/* FIXME Write proper code to govern canvas's. Make them on a per-client basis, with one for the main thread?*/
+    if( getkeythread != NULL ){
+        getkeythread->run = false;
+        g_thread_join( get_key_thread );
+        g_free( getkeythread );
+        getkeythread = NULL;
+        get_key_thread = NULL;
+    }
+
+	/* FIXME Write proper code to govern canvas. Make them on a per-client basis, with one for the main thread?*/
 	if( dbusthread != NULL ){
 		g_main_loop_quit( dbusthread->loop );
 		g_thread_join( dbus_thread );
@@ -89,8 +99,6 @@ void exitLogitechDaemon( int status )
 		dbusthread = NULL;
 		dbus_thread = NULL;
 	}
-
-
 
 	if( exitLibG15() != G15_NO_ERROR )
 		daemon_log(LOG_ERR, "Failed to exit libg15");
@@ -162,9 +170,13 @@ static gpointer get_key_thread_callback( gpointer thread )
 	int retval;
 	GetKeyThread *t = thread;
 	t->context = g_main_context_new();
-	t->loop = g_main_loop_new( t->context, FALSE );
-	g_main_loop_run( t->loop );
-	g_main_loop_unref( t->loop );
+    t->run = true;
+
+    while( t->run ){
+        handlekeys();
+        g_usleep( 10000 );
+    }
+
 	g_thread_exit( &retval );
 }
 
@@ -199,6 +211,17 @@ bool initialize()
 		daemon_log( LOG_ERR, "Failed to initialize libg15.\n" );
 		return false;
 	}else{
+        canvas = g_new0( g15canvas, 1 );
+        getkeythread = g_new0( GetKeyThread, 1 );
+        GError *thread_error = NULL;
+        get_key_thread = g_thread_create( get_key_thread_callback, getkeythread, TRUE, &thread_error );
+
+        if( thread_error != NULL ){
+            daemon_log( LOG_ERR, "Error creating key handler thread : %s\n", thread_error->message );
+            g_error_free( thread_error );
+            return false;
+        }
+
 		if( writePixmapToLCD( logo_data ) != 0 )
 			daemon_log( LOG_ERR, "Error displaying logo.\n" );
 
@@ -297,9 +320,11 @@ int main( int argc, char *argv[] )
 
 		/* Send OK to parent process */
 		daemon_retval_send(0);
-		daemon_log(LOG_INFO, "Sucessfully started LogitechDaemon");
+		daemon_log(LOG_INFO, "Succesfully started LogitechDaemon");
 
 		g_main_loop_run( loop );
-		exitLogitechDaemon( EXIT_SUCCESS );
+        exitLogitechDaemon( EXIT_SUCCESS );
 	}
+
+    return 0;
 }

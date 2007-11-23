@@ -42,7 +42,7 @@ static GObjectClass *parent_class;
 struct _DBusObjectPrivate
 {
 	gboolean dispose_has_run;
-    g15canvas *canvas;
+	g15canvas *canvas;
 };
 
 GType dbus_object_get_type()
@@ -78,37 +78,37 @@ static void dbus_object_class_init ( DBusObjectClass *klass )
 	klass->connection = dbus_g_bus_get ( DBUS_BUS_SYSTEM, &error );
 
 	dbus_object_signals[LCD_BRIGHTNESS_SET] = g_signal_new ( "lcd_brightness_set",
-												G_OBJECT_CLASS_TYPE( klass ),
-												G_SIGNAL_RUN_LAST,
-												G_STRUCT_OFFSET( DBusObjectClass, dbus_object_lcd_brightness_set ) /* class closure */,
-												NULL /* accumulator */,
-												NULL /* accu_data */,
-												g_cclosure_marshal_VOID__INT,
-												G_TYPE_NONE /* return_type */,
-												1     /* n_params */,
-												G_TYPE_INT /* param_types */ );
+	        G_OBJECT_CLASS_TYPE ( klass ),
+	        G_SIGNAL_RUN_LAST,
+	        G_STRUCT_OFFSET ( DBusObjectClass, dbus_object_lcd_brightness_set ) /* class closure */,
+	        NULL /* accumulator */,
+	        NULL /* accu_data */,
+	        g_cclosure_marshal_VOID__INT,
+	        G_TYPE_NONE /* return_type */,
+	        1     /* n_params */,
+	        G_TYPE_INT /* param_types */ );
 
 	dbus_object_signals[LCD_CONTRAST_SET] = g_signal_new ( "lcd_contrast_set",
-												G_OBJECT_CLASS_TYPE( klass ),
-												G_SIGNAL_RUN_LAST,
-												G_STRUCT_OFFSET( DBusObjectClass, dbus_object_lcd_contrast_set ) /* class closure */,
-												NULL /* accumulator */,
-												NULL /* accu_data */,
-												g_cclosure_marshal_VOID__INT,
-												G_TYPE_NONE /* return_type */,
-												1     /* n_params */,
-												G_TYPE_INT /* param_types */ );
+	                                        G_OBJECT_CLASS_TYPE ( klass ),
+	                                        G_SIGNAL_RUN_LAST,
+	                                        G_STRUCT_OFFSET ( DBusObjectClass, dbus_object_lcd_contrast_set ) /* class closure */,
+	                                        NULL /* accumulator */,
+	                                        NULL /* accu_data */,
+	                                        g_cclosure_marshal_VOID__INT,
+	                                        G_TYPE_NONE /* return_type */,
+	                                        1     /* n_params */,
+	                                        G_TYPE_INT /* param_types */ );
 
 	dbus_object_signals[KB_BRIGHTNESS_SET] = g_signal_new ( "kb_brightness_set",
-												G_OBJECT_CLASS_TYPE( klass ),
-												G_SIGNAL_RUN_LAST,
-												G_STRUCT_OFFSET( DBusObjectClass, dbus_object_kb_brightness_set ) /* class closure */,
-												NULL /* accumulator */,
-												NULL /* accu_data */,
-												g_cclosure_marshal_VOID__INT,
-												G_TYPE_NONE /* return_type */,
-												1     /* n_params */,
-												G_TYPE_INT /* param_types */ );
+	        G_OBJECT_CLASS_TYPE ( klass ),
+	        G_SIGNAL_RUN_LAST,
+	        G_STRUCT_OFFSET ( DBusObjectClass, dbus_object_kb_brightness_set ) /* class closure */,
+	        NULL /* accumulator */,
+	        NULL /* accu_data */,
+	        g_cclosure_marshal_VOID__INT,
+	        G_TYPE_NONE /* return_type */,
+	        1     /* n_params */,
+	        G_TYPE_INT /* param_types */ );
 
 	if ( klass->connection == NULL )
 	{
@@ -177,7 +177,7 @@ static void dbus_object_finalize ( GObject *object )
 	DBusObject *self = DBUS_OBJECT ( object );
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS ( parent_class )->finalize ( object );
-    g_free ( self->priv->canvas );
+	g_free ( self->priv->canvas );
 	g_free ( self->priv );
 }
 
@@ -191,7 +191,7 @@ static gboolean dbus_object_set_lcd_brightness ( DBusObject *object, gint32 IN_b
 		return false;
 	}
 
-	g_signal_emit( object, dbus_object_signals[LCD_BRIGHTNESS_SET], 0, IN_brightness );
+	g_signal_emit ( object, dbus_object_signals[LCD_BRIGHTNESS_SET], 0, IN_brightness );
 	return true;
 }
 
@@ -205,7 +205,7 @@ static gboolean dbus_object_set_lcd_contrast ( DBusObject *object, gint32 IN_con
 		return false;
 	}
 
-	g_signal_emit( object, dbus_object_signals[LCD_CONTRAST_SET], 0, IN_contrast );
+	g_signal_emit ( object, dbus_object_signals[LCD_CONTRAST_SET], 0, IN_contrast );
 	return true;
 }
 
@@ -219,7 +219,7 @@ static gboolean dbus_object_set_kb_brightness ( DBusObject *object, gint32 IN_br
 		return false;
 	}
 
-	g_signal_emit( object, dbus_object_signals[KB_BRIGHTNESS_SET], 0, IN_brightness );
+	g_signal_emit ( object, dbus_object_signals[KB_BRIGHTNESS_SET], 0, IN_brightness );
 	return true;
 }
 
