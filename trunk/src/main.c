@@ -75,9 +75,12 @@ void signalhandler( int sig )
 
 void exitLogitechDaemon( int status )
 {
-    g15r_clearScreen( canvas, 0 );
-    writePixmapToLCD( canvas->buffer );
-    g_free( canvas );
+    if( canvas != NULL ){
+        g15r_clearScreen( canvas, 0 );
+        writePixmapToLCD( canvas->buffer );
+        g_free( canvas );
+    }
+
 	setKBBrightness( G15_BRIGHTNESS_DARK );
 	setLCDBrightness( G15_BRIGHTNESS_DARK );
 	setLCDContrast( G15_CONTRAST_LOW );
