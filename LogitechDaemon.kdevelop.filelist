@@ -6,5 +6,6 @@ src/CMakeLists.txt
 src/dbusobject.c
 src/dbusobject.h
 src/handlekeys.c
+src/handlekeys.h
 src/logo.h
 templates

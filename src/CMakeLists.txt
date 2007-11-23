@@ -10,7 +10,7 @@ INCLUDE_DIRECTORIES(${DBUS_INCLUDES}
 					${LIBDAEMON_INCLUDE_DIR}
 					${G15TOOLS_INCLUDES}
 					gthread-2.0 )
-SET( SRC dbusobject.c main.c )
+SET( SRC dbusobject.c main.c handlekeys.c )
 SET( DBUSXML dbusobject.xml )
 GLIB_BIND_XML_SERVER( DBUSSRC dbus_object ${DBUSXML} )
 ADD_EXECUTABLE( logitechdaemon ${SRC} ${DBUSSRC} )
