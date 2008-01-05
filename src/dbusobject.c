@@ -36,6 +36,7 @@ enum
 	NUMBER_OF_SIGNALS
 };
 
+extern int kb_brightness;
 static guint dbus_object_signals[NUMBER_OF_SIGNALS];
 static GObjectClass *parent_class;
 
@@ -219,6 +220,7 @@ static gboolean dbus_object_set_kb_brightness ( DBusObject *object, gint32 IN_br
 		return false;
 	}
 
+    kb_brightness = IN_brightness;
 	g_signal_emit ( object, dbus_object_signals[KB_BRIGHTNESS_SET], 0, IN_brightness );
 	return true;
 }
