@@ -36,6 +36,7 @@ static bool m1_key = true;
 static bool m2_key = false;
 static bool m3_key = false;
 static bool mr_key = false;
+int kb_brightness = G15_BRIGHTNESS_MEDIUM;
 
 /* The majority of the code is taken verbatim from g15daemon */
 void handlekeys()
@@ -44,6 +45,18 @@ void handlekeys()
 
 	if ( keys != lastkeys )
 	{
+
+        /* Handle keyboard brightness change request from user*/
+
+        if ( ( keys  & G15_KEY_LIGHT ) && ! ( lastkeys & G15_KEY_LIGHT ) ){
+            kb_brightness++;
+
+            if( kb_brightness > G15_BRIGHTNESS_BRIGHT )
+                kb_brightness = G15_BRIGHTNESS_DARK;
+
+            setKBBrightness( kb_brightness );
+        }
+
 		/* Handle the M keys */
 
 		if ( ( keys  & G15_KEY_M1 ) && ! ( lastkeys & G15_KEY_M1 ) )
