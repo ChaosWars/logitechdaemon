@@ -24,6 +24,9 @@
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib-bindings.h>
 #include <daemon.h>
+#include <errno.h>
+#include <linux/types.h>
+#include <linux/hiddev.h>
 #include "dbusobject.h"
 #include "dbusobjectglue.h"
 #include "logo.h"
@@ -37,6 +40,8 @@ enum
 };
 
 extern int kb_brightness;
+extern bool keyboard_found;
+extern bool mouse_found;
 static guint dbus_object_signals[NUMBER_OF_SIGNALS];
 static GObjectClass *parent_class;
 
@@ -184,6 +189,9 @@ static void dbus_object_finalize ( GObject *object )
 
 static gboolean dbus_object_set_lcd_brightness ( DBusObject *object, gint32 IN_brightness, GError **error )
 {
+    if( !keyboard_found )
+        return false;
+
 	int retval = setLCDBrightness ( IN_brightness );
 
 	if ( retval < 0 )
@@ -193,11 +201,15 @@ static gboolean dbus_object_set_lcd_brightness ( DBusObject *object, gint32 IN_b
 	}
 
 	g_signal_emit ( object, dbus_object_signals[LCD_BRIGHTNESS_SET], 0, IN_brightness );
+
 	return true;
 }
 
 static gboolean dbus_object_set_lcd_contrast ( DBusObject *object, gint32 IN_contrast, GError **error )
 {
+    if( !keyboard_found )
+        return false;
+
 	int retval = setLCDContrast ( IN_contrast );
 
 	if ( retval < 0 )
@@ -212,6 +224,9 @@ static gboolean dbus_object_set_lcd_contrast ( DBusObject *object, gint32 IN_con
 
 static gboolean dbus_object_set_kb_brightness ( DBusObject *object, gint32 IN_brightness, GError **error )
 {
+    if( !keyboard_found )
+        return false;
+
 	int retval = setKBBrightness ( IN_brightness );
 
 	if ( retval < 0 )
@@ -227,6 +242,9 @@ static gboolean dbus_object_set_kb_brightness ( DBusObject *object, gint32 IN_br
 
 static gboolean dbus_object_blank_screen ( DBusObject *object, GError **error )
 {
+    if( !keyboard_found )
+        return false;
+
 	g15r_clearScreen ( object->priv->canvas, 0 );
 	writePixmapToLCD ( object->priv->canvas->buffer );
 	return true;
@@ -234,7 +252,104 @@ static gboolean dbus_object_blank_screen ( DBusObject *object, GError **error )
 
 static gboolean dbus_object_show_logo ( DBusObject *object, GError **error )
 {
+    if( !keyboard_found )
+        return false;
+
 	memcpy ( object->priv->canvas->buffer, logo_data, G15_BUFFER_LEN );
 	writePixmapToLCD ( object->priv->canvas->buffer );
 	return true;
+}
+
+ /*
+ * Simple hack to control the wheel of Logitech's MX-Revolution mouse.
+ *
+ * Requires hiddev.
+ *
+ * Written November 2006 by E. Toernig's bonobo - no copyrights.
+ *
+ * Contact: Edgar Toernig <froese@gmx.de>
+ *
+ * Discovered commands:
+ * (all numbers in hex, FS=free-spinning mode, CC=click-to-click mode):
+ *   6 byte commands send with report ID 10:
+ *   01 80 56 z1 00 00	immediate FS
+ *   01 80 56 z2 00 00	immediate CC
+ *   01 80 56 03 00 00	FS when wheel is moved
+ *   01 80 56 04 00 00	CC when wheel is moved
+ *   01 80 56 z5 xx yy	CC and switch to FS when wheel is rotated at given
+ *			speed; xx = up-speed, yy = down-speed
+ *			(speed in something like clicks per second, 1-50,
+ *			 0 = previously set speed)
+ *   01 80 56 06 00 00	?
+ *   01 80 56 z7 xy 00	FS with button x, CC with button y.
+ *   01 80 56 z8 0x 00	toggle FS/CC with button x; same result as 07 xx 00.
+ *
+ * If z=0 switch temporary, if z=8 set as default after powerup.
+ *
+ * Button numbers:
+ *   0 previously set button
+ *   1 left button	(can't be used for mode changes)
+ *   2 right button	(can't be used for mode changes)
+ *   3 middle (wheel) button
+ *   4 rear thumb button
+ *   5 front thumb button
+ *   6 find button
+ *   7 wheel left tilt
+ *   8 wheel right tilt
+ *   9 side wheel forward
+ *  11 side wheel backward
+ *  13 side wheel pressed
+ */
+
+static void send_report(int fd, int id, int *buf, int n)
+{
+    struct hiddev_usage_ref_multi uref;
+    struct hiddev_report_info rinfo;
+    int i;
+
+    uref.uref.report_type = HID_REPORT_TYPE_OUTPUT;
+    uref.uref.report_id = id;
+    uref.uref.field_index = 0;
+    uref.uref.usage_index = 0;
+    uref.num_values = n;
+    for (i = 0; i < n; ++i)
+        uref.values[i] = buf[i];
+    if (ioctl(fd, HIDIOCSUSAGES, &uref) == -1)
+        daemon_log( LOG_ERR, "send report %02x/%d, HIDIOCSUSAGES: %s", id, n, strerror( errno ) );
+
+    rinfo.report_type = HID_REPORT_TYPE_OUTPUT;
+    rinfo.report_id = id;
+    rinfo.num_fields = 1;
+    if (ioctl(fd, HIDIOCSREPORT, &rinfo) == -1)
+        daemon_log( LOG_ERR, "send report %02x/%d, HIDIOCSREPORT: %s", id, n, strerror( errno ) );
+}
+
+static void mx_cmd( int fd, int b1, int b2, int b3 )
+{
+    int buf[6] = { 0x01, 0x80, 0x56, b1, b2, b3 };
+    send_report( fd, 0x10, buf, 6 );
+}
+
+static gboolean dbus_object_set_mouse_free_spin( DBusObject *object, GError **error )
+{
+    if( !mouse_found )
+        return false;
+}
+
+static gboolean dbus_object_set_mouse_click_to_click( DBusObject *object, GError **error )
+{
+    if( !mouse_found )
+        return false;
+}
+
+static gboolean dbus_object_set_mouse_manual_mode( DBusObject *object, gint32 IN_button, GError **error )
+{
+    if( !mouse_found )
+        return false;
+}
+
+static gboolean dbus_object_set_mouse_auto_mode( DBusObject *object, gint32 IN_speed, GError **error )
+{
+    if( !mouse_found )
+        return false;
 }

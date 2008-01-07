@@ -34,11 +34,21 @@
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib-bindings.h>
 #include <glib.h>
+#include <linux/hiddev.h>
 #include "dbusobject.h"
 #include "logo.h"
 #include "handlekeys.h"
 
 #define DAEMON_NAME "LogitechDaemon"
+#define DAEMON_VERSION 0.4
+
+/*
+ * The code for controlling the mouse was taken from revoco.c by Edgar Toernig <froese@gmx.de>
+ */
+
+#define LOGITECH	0x046d
+#define MX_REVOLUTION	0xc51a
+#define MX_REVOLUTION2	0xc525
 
 typedef struct _DBusThread{
 	GMainLoop *loop;
@@ -51,7 +61,7 @@ typedef struct _GetKeyThread{
 	GMainContext *context;
 } GetKeyThread;
 
-int uinput_fd;
+int uinput_fd, mouse_fd;
 struct uinput_user_dev uinput;
 GMainLoop *loop = NULL;
 DBusThread *dbusthread = NULL;
@@ -59,6 +69,8 @@ GetKeyThread *getkeythread = NULL;
 GThread *dbus_thread = NULL;
 GThread *get_key_thread = NULL;
 g15canvas *canvas = NULL;
+bool keyboard_found = false;
+bool mouse_found = false;
 
 void signalhandler( int sig )
 {
@@ -75,16 +87,26 @@ void signalhandler( int sig )
 
 void exitLogitechDaemon( int status )
 {
-    if( canvas != NULL ){
-        g15r_clearScreen( canvas, 0 );
-        writePixmapToLCD( canvas->buffer );
-        g_free( canvas );
+    if( mouse_found )
+        close_dev( mouse_fd );
+
+    if( keyboard_found ){
+
+        if( canvas != NULL ){
+            g15r_clearScreen( canvas, 0 );
+            writePixmapToLCD( canvas->buffer );
+            g_free( canvas );
+        }
+
+        setKBBrightness( G15_BRIGHTNESS_DARK );
+        setLCDBrightness( G15_BRIGHTNESS_DARK );
+        setLCDContrast( G15_CONTRAST_LOW );
+        setLEDs( 0 );
+
+        if( exitLibG15() != G15_NO_ERROR )
+            daemon_log(LOG_ERR, "Failed to exit libg15");
     }
 
-	setKBBrightness( G15_BRIGHTNESS_DARK );
-	setLCDBrightness( G15_BRIGHTNESS_DARK );
-	setLCDContrast( G15_CONTRAST_LOW );
-	setLEDs( 0 );
 
     if( getkeythread != NULL ){
         getkeythread->run = false;
@@ -102,9 +124,6 @@ void exitLogitechDaemon( int status )
 		dbusthread = NULL;
 		dbus_thread = NULL;
 	}
-
-	if( exitLibG15() != G15_NO_ERROR )
-		daemon_log(LOG_ERR, "Failed to exit libg15");
 
 	ioctl( uinput_fd, UI_DEV_DESTROY );
 	close( uinput_fd );
@@ -198,6 +217,77 @@ bool initializeDbus()
 	return true;
 }
 
+static int open_dev(char *path)
+{
+    char buf[128];
+    int i, fd;
+    struct hiddev_devinfo dinfo;
+
+    for (i = 0; i < 16; ++i)
+    {
+        sprintf(buf, path, i);
+        fd = open(buf, O_RDWR);
+        if (fd >= 0)
+        {
+            if (ioctl(fd, HIDIOCGDEVINFO, &dinfo) == 0)
+                if (dinfo.vendor == (short)LOGITECH)
+            {
+                if (dinfo.product == (short)MX_REVOLUTION)
+                    return fd;
+                if (dinfo.product == (short)MX_REVOLUTION2)
+                    return fd;
+            }
+            close(fd);
+        }
+    }
+    return -1;
+}
+
+void initializeMouse()
+{
+    mouse_fd = open_dev("/dev/usb/hiddev%d");
+
+    if( mouse_fd == -1 )
+        mouse_fd = open_dev("/dev/hiddev%d");
+
+    if( mouse_fd == -1 ){
+        char *path;
+        mouse_fd = open(path = "/dev/hiddev0", O_RDWR);
+
+        if (mouse_fd == -1 && errno == ENOENT)
+        mouse_fd = open(path = "/dev/usb/hiddev0", O_RDWR);
+
+        if (mouse_fd != -1){
+            daemon_log( LOG_ERR, "No Logitech MX-Revolution (%04x:%04x or %04x:%04x) found.",
+                        LOGITECH, MX_REVOLUTION,
+                        LOGITECH, MX_REVOLUTION2 );
+        }
+
+        if( errno == EPERM || errno == EACCES ){
+            daemon_log( LOG_ERR, "No permission to access hiddev (%s-15)\n"
+                        "Check that you are running the daemon as root\n", path);
+        }
+
+        dameon_log( LOG_ERR, "Hiddev kernel driver not found.  Check with 'dmesg | grep hiddev'\n"
+                    "whether it is present in the kernel.  If it is, make sure that the device\n"
+                    "nodes (either /dev/usb/hiddev0-15 or /dev/hiddev0-15) are present.  You\n"
+                    "can create them with\n"
+                    "\n"
+                    "\tmkdir /dev/usb\n"
+                    "\tmknod /dev/usb/hiddev0 c 180 96\n"
+                    "\tmknod /dev/usb/hiddev1 c 180 97\n\t...\n"
+                    "\n"
+                    "or better by adding a rule to the udev database in\n"
+                    "/etc/udev/rules.d/10-local.rules\n"
+                    "\n"
+                    "\tBUS=\"usb\", KERNEL=\"hiddev[0-9]*\", NAME=\"usb/%k\", MODE=\"660\"\n");
+
+        mouse_found = false;
+    }else{
+        mouse_found = true;
+    }
+}
+
 bool initialize()
 {
 	int error;
@@ -212,8 +302,9 @@ bool initialize()
 
 	if( error != G15_NO_ERROR ){
 		daemon_log( LOG_ERR, "Failed to initialize libg15.\n" );
-		return false;
+        keyboard_found = false;
 	}else{
+        keyboard_found = true;
         canvas = g_new0( g15canvas, 1 );
         getkeythread = g_new0( GetKeyThread, 1 );
         GError *thread_error = NULL;
@@ -234,7 +325,8 @@ bool initialize()
 		setLCDContrast( G15_CONTRAST_MEDIUM );
 	}
 
-	return true;
+    initializeMouse();
+    return ( keyboard_found || mouse_found );
 }
 
 int main( int argc, char *argv[] )

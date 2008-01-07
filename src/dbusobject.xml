@@ -3,7 +3,8 @@
 <node name="/org/freedesktop/LogitechDaemon">
 	<interface name="org.freedesktop.LogitechDaemon">
 		<annotation name="org.freedesktop.DBus.GLib.CSymbol" value="dbus_object"/>
-		<method name="set_lcd_brightness" >
+        <!-- Keyboard methods and signals -->
+		<method name="set_lcd_brightness">
 			<arg name="brightness" type="i" direction="in"/>
 		</method>
 		<method name="set_lcd_contrast">
@@ -15,13 +16,22 @@
 		<method name="blank_screen"/>
 		<method name="show_logo"/>
 		<signal name="lcd_brightness_set" >
-			<arg name="brightness" type="i" direction="out" />
+			<arg name="brightness" type="i" direction="out"/>
 		</signal>
 		<signal name="lcd_contrast_set">
-			<arg name="contrast" type="i" direction="out" />
+			<arg name="contrast" type="i" direction="out"/>
 		</signal>
 		<signal name="kb_brightness_set">
-			<arg name="brightness" type="i" direction="out" />
+			<arg name="brightness" type="i" direction="out"/>
 		</signal>
+        <!-- Mouse methods and signals -->
+        <method name="set_mouse_free_spin"/>
+		<method name="set_mouse_click_to_click"/>
+        <method name="set_mouse_manual_mode">
+            <arg name="button" type="i" direction="in" />
+        </method>
+        <method name="set_mouse_auto_mode">
+            <arg name="speed" type="i" direction="in" />
+        </method>
 	</interface>
 </node>
