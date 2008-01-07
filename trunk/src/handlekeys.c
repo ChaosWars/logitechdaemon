@@ -48,13 +48,14 @@ void handlekeys()
 
         /* Handle keyboard brightness change request from user*/
 
-        if ( ( keys  & G15_KEY_LIGHT ) && ! ( lastkeys & G15_KEY_LIGHT ) ){
+        if ( ( keys & G15_KEY_LIGHT ) && !( lastkeys & G15_KEY_LIGHT ) ){
             kb_brightness++;
 
             if( kb_brightness > G15_BRIGHTNESS_BRIGHT )
                 kb_brightness = G15_BRIGHTNESS_DARK;
 
             setKBBrightness( kb_brightness );
+            daemon_log(LOG_INFO, "Keyboard brightness set to %d", kb_brightness );
         }
 
 		/* Handle the M keys */
