@@ -64,6 +64,9 @@ static void send_report(int fd, int id, int *buf, int n);
 static void mx_cmd( int fd, int b1, int b2, int b3 );
 static gboolean dbus_object_set_mouse_free_spin( DBusObject *object, GError **error );
 static gboolean dbus_object_set_mouse_click_to_click( DBusObject *object, GError **error );
+static gboolean dbus_object_set_mouse_fs_on_wheel_move( DBusObject *object, GError **error );
+static gboolean dbus_object_set_mouse_cc_on_wheel_move( DBusObject *object, GError **error );
+static gboolean dbus_object_set_mouse_unknown( DBusObject *object, GError **error );
 static gboolean dbus_object_set_mouse_manual_mode( DBusObject *object, gint32 IN_button, GError **error );
 static gboolean dbus_object_set_mouse_auto_mode( DBusObject *object, gint32 IN_speed, GError **error );
 

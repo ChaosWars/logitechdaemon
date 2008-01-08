@@ -329,6 +329,13 @@ static void send_report(int fd, int id, int *buf, int n)
 static void mx_cmd( int fd, int b1, int b2, int b3 )
 {
     int buf[6] = { 0x01, 0x80, 0x56, b1, b2, b3 };
+    daemon_log ( LOG_INFO, "mx_cmd( %x, %x, %x, %x, %x, %x )\n",
+                 buf[0],
+                 buf[1],
+                 buf[2],
+                 buf[3],
+                 buf[4],
+                 buf[5] );
     send_report( fd, 0x10, buf, 6 );
 }
 
@@ -347,6 +354,33 @@ static gboolean dbus_object_set_mouse_click_to_click( DBusObject *object, GError
         return false;
 
     mx_cmd( mouse_fd, 0x82, 0, 0 );
+    return true;
+}
+
+static gboolean dbus_object_set_mouse_fs_on_wheel_move( DBusObject *object, GError **error )
+{
+    if( !mouse_found )
+        return false;
+
+    mx_cmd( mouse_fd, 0x83, 0, 0 );
+    return true;
+}
+
+static gboolean dbus_object_set_mouse_cc_on_wheel_move( DBusObject *object, GError **error )
+{
+    if( !mouse_found )
+        return false;
+
+    mx_cmd( mouse_fd, 0x84, 0, 0 );
+    return true;
+}
+
+static gboolean dbus_object_set_mouse_unknown( DBusObject *object, GError **error )
+{
+    if( !mouse_found )
+        return false;
+
+    mx_cmd( mouse_fd, 0x86, 0, 0 );
     return true;
 }
 
