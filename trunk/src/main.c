@@ -88,7 +88,7 @@ void signalhandler( int sig )
 void exitLogitechDaemon( int status )
 {
     if( mouse_found )
-        close_dev( mouse_fd );
+        close( mouse_fd );
 
     if( keyboard_found ){
 
@@ -258,7 +258,7 @@ void initializeMouse()
         mouse_fd = open(path = "/dev/usb/hiddev0", O_RDWR);
 
         if (mouse_fd != -1){
-            daemon_log( LOG_ERR, "No Logitech MX-Revolution (%04x:%04x or %04x:%04x) found.",
+            daemon_log( LOG_ERR, "No Logitech MX-Revolution (%04x:%04x or %04x:%04x) found.\n",
                         LOGITECH, MX_REVOLUTION,
                         LOGITECH, MX_REVOLUTION2 );
         }
@@ -268,7 +268,7 @@ void initializeMouse()
                         "Check that you are running the daemon as root\n", path);
         }
 
-        dameon_log( LOG_ERR, "Hiddev kernel driver not found.  Check with 'dmesg | grep hiddev'\n"
+        daemon_log( LOG_ERR, "Hiddev kernel driver not found.  Check with 'dmesg | grep hiddev'\n"
                     "whether it is present in the kernel.  If it is, make sure that the device\n"
                     "nodes (either /dev/usb/hiddev0-15 or /dev/hiddev0-15) are present.  You\n"
                     "can create them with\n"
@@ -284,6 +284,7 @@ void initializeMouse()
 
         mouse_found = false;
     }else{
+        daemon_log( LOG_INFO, "Found Logitech MX-Revolution\n" );
         mouse_found = true;
     }
 }

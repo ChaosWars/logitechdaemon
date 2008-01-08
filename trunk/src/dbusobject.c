@@ -27,6 +27,7 @@
 #include <errno.h>
 #include <linux/types.h>
 #include <linux/hiddev.h>
+#include <sys/ioctl.h>
 #include "dbusobject.h"
 #include "dbusobjectglue.h"
 #include "logo.h"
@@ -315,13 +316,13 @@ static void send_report(int fd, int id, int *buf, int n)
     for (i = 0; i < n; ++i)
         uref.values[i] = buf[i];
     if (ioctl(fd, HIDIOCSUSAGES, &uref) == -1)
-        daemon_log( LOG_ERR, "send report %02x/%d, HIDIOCSUSAGES: %s", id, n, strerror( errno ) );
+        daemon_log( LOG_ERR, "send report %02x/%d, HIDIOCSUSAGES: %s\n", id, n, strerror( errno ) );
 
     rinfo.report_type = HID_REPORT_TYPE_OUTPUT;
     rinfo.report_id = id;
     rinfo.num_fields = 1;
     if (ioctl(fd, HIDIOCSREPORT, &rinfo) == -1)
-        daemon_log( LOG_ERR, "send report %02x/%d, HIDIOCSREPORT: %s", id, n, strerror( errno ) );
+        daemon_log( LOG_ERR, "send report %02x/%d, HIDIOCSREPORT: %s\n", id, n, strerror( errno ) );
 }
 
 static void mx_cmd( int fd, int b1, int b2, int b3 )
@@ -334,22 +335,30 @@ static gboolean dbus_object_set_mouse_free_spin( DBusObject *object, GError **er
 {
     if( !mouse_found )
         return false;
+
+    return true;
 }
 
 static gboolean dbus_object_set_mouse_click_to_click( DBusObject *object, GError **error )
 {
     if( !mouse_found )
         return false;
+
+    return true;
 }
 
 static gboolean dbus_object_set_mouse_manual_mode( DBusObject *object, gint32 IN_button, GError **error )
 {
     if( !mouse_found )
         return false;
+
+    return true;
 }
 
 static gboolean dbus_object_set_mouse_auto_mode( DBusObject *object, gint32 IN_speed, GError **error )
 {
     if( !mouse_found )
         return false;
+
+    return true;
 }

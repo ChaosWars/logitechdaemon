@@ -1,7 +1,7 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="3" >
+ <DocsAndViews NumberOfDocuments="5" >
   <Doc0 NumberOfViews="1" URL="file:///home/lawrence/Projects/LogitechDaemon/src/handlekeys.c" >
    <View0 Encoding="" Type="Source" />
   </Doc0>
@@ -9,8 +9,14 @@
    <View0 Encoding="" Type="Source" />
   </Doc1>
   <Doc2 NumberOfViews="1" URL="file:///home/lawrence/Projects/LogitechDaemon/src/dbusobject.c" >
-   <View0 Encoding="" line="214" Type="Source" />
+   <View0 Encoding="" Type="Source" />
   </Doc2>
+  <Doc3 NumberOfViews="1" URL="file:///home/lawrence/Projects/LogitechDaemon/src/dbusobject.xml" >
+   <View0 Encoding="" Type="Source" />
+  </Doc3>
+  <Doc4 NumberOfViews="1" URL="file:///home/lawrence/Projects/LogitechDaemon/src/dbusobject.h" >
+   <View0 Encoding="" line="67" Type="Source" />
+  </Doc4>
  </DocsAndViews>
  <pluginList>
   <kdevdebugger>
