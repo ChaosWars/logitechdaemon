@@ -41,6 +41,7 @@ enum
 };
 
 extern int kb_brightness;
+extern int mouse_fd;
 extern bool keyboard_found;
 extern bool mouse_found;
 static guint dbus_object_signals[NUMBER_OF_SIGNALS];
@@ -336,6 +337,7 @@ static gboolean dbus_object_set_mouse_free_spin( DBusObject *object, GError **er
     if( !mouse_found )
         return false;
 
+    mx_cmd( mouse_fd, 0x81, 0, 0 );
     return true;
 }
 
@@ -344,6 +346,7 @@ static gboolean dbus_object_set_mouse_click_to_click( DBusObject *object, GError
     if( !mouse_found )
         return false;
 
+    mx_cmd( mouse_fd, 0x82, 0, 0 );
     return true;
 }
 
@@ -352,6 +355,12 @@ static gboolean dbus_object_set_mouse_manual_mode( DBusObject *object, gint32 IN
     if( !mouse_found )
         return false;
 
+    if( IN_button < 0 || ( IN_button > 9 && ( IN_button != 11 || IN_button != 13 ) ) ){
+        daemon_log( LOG_ERR, "set_mouse_manual_mode : parameter IN_button out of range.\n" );
+        return false;
+    }
+
+    mx_cmd( mouse_fd, 0x88, IN_button, 0 );
     return true;
 }
 
@@ -360,5 +369,11 @@ static gboolean dbus_object_set_mouse_auto_mode( DBusObject *object, gint32 IN_s
     if( !mouse_found )
         return false;
 
+    if( IN_speed < 1 || IN_speed > 50 ){
+        daemon_log( LOG_ERR, "set_mouse_auto_mode : parameter IN_speed out of range.\n" );
+        return false;
+    }
+
+    mx_cmd( mouse_fd, 0x85, IN_speed, IN_speed );
     return true;
 }

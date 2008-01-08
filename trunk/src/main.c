@@ -243,7 +243,7 @@ static int open_dev(char *path)
     return -1;
 }
 
-void initializeMouse()
+bool initializeMouse()
 {
     mouse_fd = open_dev("/dev/usb/hiddev%d");
 
@@ -282,10 +282,10 @@ void initializeMouse()
                     "\n"
                     "\tBUS=\"usb\", KERNEL=\"hiddev[0-9]*\", NAME=\"usb/%k\", MODE=\"660\"\n");
 
-        mouse_found = false;
+        return false;
     }else{
         daemon_log( LOG_INFO, "Found Logitech MX-Revolution\n" );
-        mouse_found = true;
+        return true;
     }
 }
 
@@ -326,7 +326,7 @@ bool initialize()
 		setLCDContrast( G15_CONTRAST_MEDIUM );
 	}
 
-    initializeMouse();
+    mouse_found = initializeMouse();
     return ( keyboard_found || mouse_found );
 }
 
