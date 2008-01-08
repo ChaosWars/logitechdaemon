@@ -27,6 +27,9 @@
         <!-- Mouse methods and signals -->
         <method name="set_mouse_free_spin"/>
 		<method name="set_mouse_click_to_click"/>
+        <method name="set_mouse_fs_on_wheel_move"/>
+        <method name="set_mouse_cc_on_wheel_move"/>
+        <method name="set_mouse_unknown"/>
         <method name="set_mouse_manual_mode">
             <arg name="button" type="i" direction="in" />
         </method>
