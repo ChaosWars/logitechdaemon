@@ -26,4 +26,4 @@ TARGET_LINK_LIBRARIES( logitechdaemon
 INSTALL( PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/logitech-daemon DESTINATION /etc/rc.d )
 INSTALL( PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/logitech-daemon.conf DESTINATION /etc/dbus-1/system.d )
 INSTALL( TARGETS logitechdaemon RUNTIME DESTINATION /usr/bin )
-INSTALL( FILES com.googlecode.LogitechDaemon.service DESTINATION /usr/share/dbus-1/services )
+INSTALL( FILES com.googlecode.logitechdaemon.service DESTINATION /usr/share/dbus-1/services )
