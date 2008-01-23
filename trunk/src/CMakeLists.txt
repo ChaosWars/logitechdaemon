@@ -16,14 +16,14 @@ GLIB_BIND_XML_SERVER( DBUSSRC dbus_object ${DBUSXML} )
 ADD_EXECUTABLE( logitechdaemon ${SRC} ${DBUSSRC} )
 
 TARGET_LINK_LIBRARIES( logitechdaemon
-						gthread-2.0
-						${DBUS_GLIB_LIBRARY}
-						${DBUS_LIBRARY}
-						${GLIB2_LIBRARIES}
-						${LIBDAEMON_LIBRARY}
-						${G15TOOLS_LIBRARY} )
+			gthread-2.0
+			${DBUS_GLIB_LIBRARY}
+			${DBUS_LIBRARY}
+			${GLIB2_LIBRARIES}
+			${LIBDAEMON_LIBRARY}
+			${G15TOOLS_LIBRARY} )
 
 INSTALL( PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/logitech-daemon DESTINATION /etc/rc.d )
 INSTALL( PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/logitech-daemon.conf DESTINATION /etc/dbus-1/system.d )
 INSTALL( TARGETS logitechdaemon RUNTIME DESTINATION /usr/bin )
-INSTALL( FILES org.freedesktop.LogitechDaemon.service DESTINATION /usr/share/dbus-1/services )
+INSTALL( FILES com.googlecode.LogitechDaemon.service DESTINATION /usr/share/dbus-1/services )
