@@ -140,10 +140,10 @@ void exitLogitechDaemon( int status )
 
 bool initializeUInput()
 {
-	uinput_fd = open("/dev/uinput", O_WRONLY | O_NDELAY );
+	uinput_fd = open("/dev/input/uinput", O_WRONLY | O_NDELAY );
 
 	if( uinput_fd < 0 ){
-		daemon_log( LOG_ERR, "Failed to open /dev/uinput.\nCheck if the uinput module is loaded, and that you are running the daemon as root.\n" );
+		daemon_log( LOG_ERR, "Failed to open /dev/input/uinput.\nCheck if the uinput module is loaded, and that you are running the daemon as root.\n" );
 		return false;
 	}
 
