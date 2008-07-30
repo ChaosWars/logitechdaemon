@@ -25,4 +25,4 @@ void handlekeys();
 void keydown ( unsigned char code );
 void keyup ( unsigned char code );
 
-#endif // _HANDLEKEYS_H_
+#endif /* _HANDLEKEYS_H_ */

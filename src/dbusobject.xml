@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<node name="/org/freedesktop/LogitechDaemon">
-	<interface name="org.freedesktop.LogitechDaemon">
+<node name="/com/googlecode/logitechdaemon">
+	<interface name="com.googlecode.logitechdaemon">
 		<annotation name="org.freedesktop.DBus.GLib.CSymbol" value="dbus_object"/>
         <!-- Keyboard methods and signals -->
 		<method name="set_lcd_brightness">
@@ -24,17 +24,5 @@
 		<signal name="kb_brightness_set">
 			<arg name="brightness" type="i" direction="out"/>
 		</signal>
-        <!-- Mouse methods and signals -->
-        <method name="set_mouse_free_spin"/>
-		<method name="set_mouse_click_to_click"/>
-        <method name="set_mouse_fs_on_wheel_move"/>
-        <method name="set_mouse_cc_on_wheel_move"/>
-        <method name="set_mouse_unknown"/>
-        <method name="set_mouse_manual_mode">
-            <arg name="button" type="i" direction="in" />
-        </method>
-        <method name="set_mouse_auto_mode">
-            <arg name="speed" type="i" direction="in" />
-        </method>
 	</interface>
 </node>

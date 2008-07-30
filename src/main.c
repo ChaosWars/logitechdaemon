@@ -39,16 +39,8 @@
 #include "logo.h"
 #include "handlekeys.h"
 
-#define DAEMON_NAME "LogitechDaemon"
-#define DAEMON_VERSION 0.4
-
-/*
- * The code for controlling the mouse was taken from revoco.c by Edgar Toernig <froese@gmx.de>
- */
-
-#define LOGITECH	0x046d
-#define MX_REVOLUTION	0xc51a
-#define MX_REVOLUTION2	0xc525
+#define DAEMON_NAME "Logitech G15 Daemon"
+#define DAEMON_VERSION 0.5
 
 typedef struct _DBusThread{
 	GMainLoop *loop;
@@ -57,11 +49,11 @@ typedef struct _DBusThread{
 } DBusThread;
 
 typedef struct _GetKeyThread{
-    gboolean run;
+	gboolean run;
 	GMainContext *context;
 } GetKeyThread;
 
-int uinput_fd, mouse_fd;
+int uinput_fd = 0;
 struct uinput_user_dev uinput;
 GMainLoop *loop = NULL;
 DBusThread *dbusthread = NULL;
@@ -70,7 +62,6 @@ GThread *dbus_thread = NULL;
 GThread *get_key_thread = NULL;
 g15canvas *canvas = NULL;
 bool keyboard_found = false;
-bool mouse_found = false;
 
 void signalhandler( int sig )
 {
@@ -87,9 +78,6 @@ void signalhandler( int sig )
 
 void exitLogitechDaemon( int status )
 {
-    if( mouse_found )
-        close( mouse_fd );
-
     if( keyboard_found ){
 
         if( canvas != NULL ){
@@ -116,7 +104,6 @@ void exitLogitechDaemon( int status )
         get_key_thread = NULL;
     }
 
-	/* FIXME Write proper code to govern canvas. Make them on a per-client basis, with one for the main thread?*/
 	if( dbusthread != NULL ){
 		g_main_loop_quit( dbusthread->loop );
 		g_thread_join( dbus_thread );
@@ -143,6 +130,11 @@ bool initializeUInput()
 	uinput_fd = open("/dev/input/uinput", O_WRONLY | O_NDELAY );
 
 	if( uinput_fd < 0 ){
+		uinput_fd = open("/dev/uinput", O_WRONLY | O_NDELAY );
+	}
+	
+	if( uinput_fd < 0 ){
+		daemon_log( LOG_ERR, "Failed to open /dev/uinput.\nCheck if the uinput module is loaded, and that you are running the daemon as root.\n" );
 		daemon_log( LOG_ERR, "Failed to open /dev/input/uinput.\nCheck if the uinput module is loaded, and that you are running the daemon as root.\n" );
 		return false;
 	}
@@ -192,12 +184,12 @@ static gpointer get_key_thread_callback( gpointer thread )
 	int retval;
 	GetKeyThread *t = thread;
 	t->context = g_main_context_new();
-    t->run = true;
+	t->run = true;
 
-    while( t->run ){
-        handlekeys();
-        g_usleep( 10000 );
-    }
+	while( t->run ){
+		handlekeys();
+		g_usleep( 10000 );
+	}
 
 	g_thread_exit( &retval );
 }
@@ -217,78 +209,6 @@ bool initializeDbus()
 	return true;
 }
 
-static int open_dev(char *path)
-{
-    char buf[128];
-    int i, fd;
-    struct hiddev_devinfo dinfo;
-
-    for (i = 0; i < 16; ++i)
-    {
-        sprintf(buf, path, i);
-        fd = open(buf, O_RDWR);
-        if (fd >= 0)
-        {
-            if (ioctl(fd, HIDIOCGDEVINFO, &dinfo) == 0)
-                if (dinfo.vendor == (short)LOGITECH)
-            {
-                if (dinfo.product == (short)MX_REVOLUTION)
-                    return fd;
-                if (dinfo.product == (short)MX_REVOLUTION2)
-                    return fd;
-            }
-            close(fd);
-        }
-    }
-    return -1;
-}
-
-bool initializeMouse()
-{
-    mouse_fd = open_dev("/dev/usb/hiddev%d");
-
-    if( mouse_fd == -1 )
-        mouse_fd = open_dev("/dev/hiddev%d");
-
-    if( mouse_fd == -1 ){
-        char *path;
-        mouse_fd = open(path = "/dev/hiddev0", O_RDWR);
-
-        if (mouse_fd == -1 && errno == ENOENT)
-        mouse_fd = open(path = "/dev/usb/hiddev0", O_RDWR);
-
-        if (mouse_fd != -1){
-            daemon_log( LOG_ERR, "No Logitech MX-Revolution (%04x:%04x or %04x:%04x) found.\n",
-                        LOGITECH, MX_REVOLUTION,
-                        LOGITECH, MX_REVOLUTION2 );
-        }
-
-        if( errno == EPERM || errno == EACCES ){
-            daemon_log( LOG_ERR, "No permission to access hiddev (%s-15)\n"
-                        "Check that you are running the daemon as root\n", path);
-        }
-
-        daemon_log( LOG_ERR, "Hiddev kernel driver not found.  Check with 'dmesg | grep hiddev'\n"
-                    "whether it is present in the kernel.  If it is, make sure that the device\n"
-                    "nodes (either /dev/usb/hiddev0-15 or /dev/hiddev0-15) are present.  You\n"
-                    "can create them with\n"
-                    "\n"
-                    "\tmkdir /dev/usb\n"
-                    "\tmknod /dev/usb/hiddev0 c 180 96\n"
-                    "\tmknod /dev/usb/hiddev1 c 180 97\n\t...\n"
-                    "\n"
-                    "or better by adding a rule to the udev database in\n"
-                    "/etc/udev/rules.d/10-local.rules\n"
-                    "\n"
-                    "\tBUS=\"usb\", KERNEL=\"hiddev[0-9]*\", NAME=\"usb/%k\", MODE=\"660\"\n");
-
-        return false;
-    }else{
-        daemon_log( LOG_INFO, "Found Logitech MX-Revolution\n" );
-        return true;
-    }
-}
-
 bool initialize()
 {
 	int error;
@@ -303,19 +223,19 @@ bool initialize()
 
 	if( error != G15_NO_ERROR ){
 		daemon_log( LOG_ERR, "Failed to initialize libg15.\n" );
-        keyboard_found = false;
+	        keyboard_found = false;
 	}else{
-        keyboard_found = true;
-        canvas = g_new0( g15canvas, 1 );
-        getkeythread = g_new0( GetKeyThread, 1 );
-        GError *thread_error = NULL;
-        get_key_thread = g_thread_create( get_key_thread_callback, getkeythread, TRUE, &thread_error );
+		keyboard_found = true;
+	        canvas = g_new0( g15canvas, 1 );
+        	getkeythread = g_new0( GetKeyThread, 1 );
+	        GError *thread_error = NULL;
+	        get_key_thread = g_thread_create( get_key_thread_callback, getkeythread, TRUE, &thread_error );
 
-        if( thread_error != NULL ){
-            daemon_log( LOG_ERR, "Error creating key handler thread : %s\n", thread_error->message );
-            g_error_free( thread_error );
-            return false;
-        }
+	        if( thread_error != NULL ){
+			daemon_log( LOG_ERR, "Error creating key handler thread : %s\n", thread_error->message );
+			g_error_free( thread_error );
+			return false;
+	        }
 
 		if( writePixmapToLCD( logo_data ) != 0 )
 			daemon_log( LOG_ERR, "Error displaying logo.\n" );
@@ -326,8 +246,7 @@ bool initialize()
 		setLCDContrast( G15_CONTRAST_MEDIUM );
 	}
 
-    mouse_found = initializeMouse();
-    return ( keyboard_found || mouse_found );
+    return keyboard_found;
 }
 
 int main( int argc, char *argv[] )
@@ -410,17 +329,17 @@ int main( int argc, char *argv[] )
 
 		if( !initialize() ){
 			daemon_log( LOG_ERR, "Failed to initialize LogitechDaemon.\n" );
-			daemon_retval_send( 1 );
+			daemon_retval_send( EXIT_FAILURE );
 			exitLogitechDaemon( EXIT_FAILURE );
 		}
 
 		/* Send OK to parent process */
-		daemon_retval_send(0);
+		daemon_retval_send( EXIT_SUCCESS );
 		daemon_log(LOG_INFO, "Succesfully started LogitechDaemon");
 
 		g_main_loop_run( loop );
-        exitLogitechDaemon( EXIT_SUCCESS );
+	        exitLogitechDaemon( EXIT_SUCCESS );
 	}
 
-    return 0;
+    return EXIT_SUCCESS;
 }

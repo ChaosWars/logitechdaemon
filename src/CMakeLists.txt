@@ -23,7 +23,7 @@ TARGET_LINK_LIBRARIES( logitechdaemon
 			${LIBDAEMON_LIBRARY}
 			${G15TOOLS_LIBRARY} )
 
-INSTALL( PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/logitech-daemon DESTINATION /etc/rc.d )
-INSTALL( PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/logitech-daemon.conf DESTINATION /etc/dbus-1/system.d )
+INSTALL( PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/logitechdaemon DESTINATION /etc/rc.d )
+INSTALL( PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/logitechdaemon.conf DESTINATION /etc/dbus-1/system.d )
 INSTALL( TARGETS logitechdaemon RUNTIME DESTINATION /usr/bin )
 INSTALL( FILES com.googlecode.logitechdaemon.service DESTINATION /usr/share/dbus-1/services )
