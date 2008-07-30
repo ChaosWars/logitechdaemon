@@ -38,7 +38,7 @@ static bool m3_key = false;
 static bool mr_key = false;
 int kb_brightness = G15_BRIGHTNESS_MEDIUM;
 
-/* The majority of the code is taken verbatim from g15daemon */
+/* The majority of the code is taken verbatim from g15daemon for compatability reasons */
 void handlekeys()
 {
 	getPressedKeys ( &keys, 40 );

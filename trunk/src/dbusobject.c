@@ -41,17 +41,9 @@ enum
 };
 
 extern int kb_brightness;
-extern int mouse_fd;
 extern bool keyboard_found;
-extern bool mouse_found;
 static guint dbus_object_signals[NUMBER_OF_SIGNALS];
 static GObjectClass *parent_class;
-
-struct _DBusObjectPrivate
-{
-	gboolean dispose_has_run;
-	g15canvas *canvas;
-};
 
 GType dbus_object_get_type()
 {
@@ -134,14 +126,14 @@ static void dbus_object_init ( GTypeInstance *instance, gpointer g_class )
 	self->priv = G_TYPE_INSTANCE_GET_PRIVATE ( self, DBUS_OBJECT_TYPE, DBusObjectPrivate );
 	self->priv = g_new0 ( DBusObjectPrivate,  1 );
 	self->priv->dispose_has_run = FALSE;
-	self->priv->canvas = g_new0 ( g15canvas, 1 );
+/*	self->priv->canvas = g_new0 ( g15canvas, 1 ); */
 	DBusObjectClass *klass = DBUS_OBJECT_GET_CLASS ( instance );
 	DBusGProxy *proxy = dbus_g_proxy_new_for_name ( klass->connection, DBUS_SERVICE_DBUS, DBUS_PATH_DBUS, DBUS_INTERFACE_DBUS );
 
 	GError *error;
 	guint32 request_name_ret;
 
-	if ( !org_freedesktop_DBus_request_name ( proxy, "org.freedesktop.LogitechDaemon", 0, &request_name_ret, &error ) )
+	if ( !org_freedesktop_DBus_request_name ( proxy, "org.freedesktop.LogitechG15Daemon", 0, &request_name_ret, &error ) )
 	{
 		daemon_log ( LOG_ERR, "Failed to obtain address on bus: %s\n", error->message );
 		g_error_free ( error );
@@ -152,7 +144,7 @@ static void dbus_object_init ( GTypeInstance *instance, gpointer g_class )
 		daemon_log ( LOG_ERR, "Adress is already registered on bus\n" );
 	}
 
-	dbus_g_connection_register_g_object ( klass->connection, "/org/freedesktop/LogitechDaemon", G_OBJECT ( instance ) );
+	dbus_g_connection_register_g_object ( klass->connection, "/org/freedesktop/LogitechG15Daemon", G_OBJECT ( instance ) );
 	g_object_unref ( proxy );
 }
 
@@ -185,7 +177,7 @@ static void dbus_object_finalize ( GObject *object )
 	DBusObject *self = DBUS_OBJECT ( object );
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS ( parent_class )->finalize ( object );
-	g_free ( self->priv->canvas );
+/*	g_free ( self->priv->canvas ); */
 	g_free ( self->priv );
 }
 
@@ -247,8 +239,8 @@ static gboolean dbus_object_blank_screen ( DBusObject *object, GError **error )
     if( !keyboard_found )
         return false;
 
-	g15r_clearScreen ( object->priv->canvas, 0 );
-	writePixmapToLCD ( object->priv->canvas->buffer );
+/*	g15r_clearScreen ( object->priv->canvas, 0 );
+	writePixmapToLCD ( object->priv->canvas->buffer ); */
 	return true;
 }
 
@@ -257,157 +249,7 @@ static gboolean dbus_object_show_logo ( DBusObject *object, GError **error )
     if( !keyboard_found )
         return false;
 
-	memcpy ( object->priv->canvas->buffer, logo_data, G15_BUFFER_LEN );
-	writePixmapToLCD ( object->priv->canvas->buffer );
+/*	memcpy ( object->priv->canvas->buffer, logo_data, G15_BUFFER_LEN );
+	writePixmapToLCD ( object->priv->canvas->buffer ); */
 	return true;
-}
-
- /*
- * Simple hack to control the wheel of Logitech's MX-Revolution mouse.
- *
- * Requires hiddev.
- *
- * Written November 2006 by E. Toernig's bonobo - no copyrights.
- *
- * Contact: Edgar Toernig <froese@gmx.de>
- *
- * Discovered commands:
- * (all numbers in hex, FS=free-spinning mode, CC=click-to-click mode):
- *   6 byte commands send with report ID 10:
- *   01 80 56 z1 00 00	immediate FS
- *   01 80 56 z2 00 00	immediate CC
- *   01 80 56 03 00 00	FS when wheel is moved
- *   01 80 56 04 00 00	CC when wheel is moved
- *   01 80 56 z5 xx yy	CC and switch to FS when wheel is rotated at given
- *			speed; xx = up-speed, yy = down-speed
- *			(speed in something like clicks per second, 1-50,
- *			 0 = previously set speed)
- *   01 80 56 06 00 00	?
- *   01 80 56 z7 xy 00	FS with button x, CC with button y.
- *   01 80 56 z8 0x 00	toggle FS/CC with button x; same result as 07 xx 00.
- *
- * If z=0 switch temporary, if z=8 set as default after powerup.
- *
- * Button numbers:
- *   0 previously set button
- *   1 left button	(can't be used for mode changes)
- *   2 right button	(can't be used for mode changes)
- *   3 middle (wheel) button
- *   4 rear thumb button
- *   5 front thumb button
- *   6 find button
- *   7 wheel left tilt
- *   8 wheel right tilt
- *   9 side wheel forward
- *  11 side wheel backward
- *  13 side wheel pressed
- */
-
-static void send_report(int fd, int id, int *buf, int n)
-{
-    struct hiddev_usage_ref_multi uref;
-    struct hiddev_report_info rinfo;
-    int i;
-
-    uref.uref.report_type = HID_REPORT_TYPE_OUTPUT;
-    uref.uref.report_id = id;
-    uref.uref.field_index = 0;
-    uref.uref.usage_index = 0;
-    uref.num_values = n;
-    for (i = 0; i < n; ++i)
-        uref.values[i] = buf[i];
-    if (ioctl(fd, HIDIOCSUSAGES, &uref) == -1)
-        daemon_log( LOG_ERR, "send report %02x/%d, HIDIOCSUSAGES: %s\n", id, n, strerror( errno ) );
-
-    rinfo.report_type = HID_REPORT_TYPE_OUTPUT;
-    rinfo.report_id = id;
-    rinfo.num_fields = 1;
-    if (ioctl(fd, HIDIOCSREPORT, &rinfo) == -1)
-        daemon_log( LOG_ERR, "send report %02x/%d, HIDIOCSREPORT: %s\n", id, n, strerror( errno ) );
-}
-
-static void mx_cmd( int fd, int b1, int b2, int b3 )
-{
-    int buf[6] = { 0x01, 0x80, 0x56, b1, b2, b3 };
-    daemon_log ( LOG_INFO, "mx_cmd( %x, %x, %x, %x, %x, %x )\n",
-                 buf[0],
-                 buf[1],
-                 buf[2],
-                 buf[3],
-                 buf[4],
-                 buf[5] );
-    send_report( fd, 0x10, buf, 6 );
-}
-
-static gboolean dbus_object_set_mouse_free_spin( DBusObject *object, GError **error )
-{
-    if( !mouse_found )
-        return false;
-
-    mx_cmd( mouse_fd, 0x81, 0, 0 );
-    return true;
-}
-
-static gboolean dbus_object_set_mouse_click_to_click( DBusObject *object, GError **error )
-{
-    if( !mouse_found )
-        return false;
-
-    mx_cmd( mouse_fd, 0x82, 0, 0 );
-    return true;
-}
-
-static gboolean dbus_object_set_mouse_fs_on_wheel_move( DBusObject *object, GError **error )
-{
-    if( !mouse_found )
-        return false;
-
-    mx_cmd( mouse_fd, 0x83, 0, 0 );
-    return true;
-}
-
-static gboolean dbus_object_set_mouse_cc_on_wheel_move( DBusObject *object, GError **error )
-{
-    if( !mouse_found )
-        return false;
-
-    mx_cmd( mouse_fd, 0x84, 0, 0 );
-    return true;
-}
-
-static gboolean dbus_object_set_mouse_unknown( DBusObject *object, GError **error )
-{
-    if( !mouse_found )
-        return false;
-
-    mx_cmd( mouse_fd, 0x86, 0, 0 );
-    return true;
-}
-
-static gboolean dbus_object_set_mouse_manual_mode( DBusObject *object, gint32 IN_button, GError **error )
-{
-    if( !mouse_found )
-        return false;
-
-    if( IN_button < 0 || ( IN_button > 9 && ( IN_button != 11 || IN_button != 13 ) ) ){
-        daemon_log( LOG_ERR, "set_mouse_manual_mode : parameter IN_button out of range.\n" );
-        return false;
-    }
-
-    mx_cmd( mouse_fd, 0x88, IN_button, 0 );
-    return true;
-}
-
-static gboolean dbus_object_set_mouse_auto_mode( DBusObject *object, gint32 IN_speed, GError **error )
-{
-    if( !mouse_found )
-        return false;
-
-    if( IN_speed < 1 || IN_speed > 50 ){
-        daemon_log( LOG_ERR, "set_mouse_auto_mode : parameter IN_speed out of range.\n" );
-        return false;
-    }
-
-    mx_cmd( mouse_fd, 0x85, IN_speed, IN_speed );
-    return true;
 }
