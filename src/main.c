@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2007 by Lawrence Lee   *
- *   valheru@facticius.net   *
+ *   Copyright (C) 2007 by Lawrence Lee                                    *
+ *   valheru.ashen.shugar@gmail.com                                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -17,26 +17,27 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include <string.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
+
 #include <daemon.h>
-#include <stdbool.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+#include <errno.h>
 #include <fcntl.h>
+#include <glib.h>
 #include <libg15.h>
 #include <libg15render.h>
-#include <linux/uinput.h>
+#include <signal.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib-bindings.h>
-#include <glib.h>
+#include <linux/uinput.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include "dbusobject.h"
-#include "logo.h"
 #include "handlekeys.h"
+#include "logo.h"
 
 #define DAEMON_NAME "Logitech G15"
 #define DAEMON_VERSION "0.6"
