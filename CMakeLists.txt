@@ -1,5 +1,5 @@
-PROJECT( logitechdaemon C )
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+PROJECT( logitechg15 C )
+CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
 #if you don't want the full compiler output, remove the following line
 SET(CMAKE_VERBOSE_MAKEFILE OFF)
 
