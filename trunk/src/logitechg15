@@ -3,28 +3,28 @@
 . /etc/rc.conf
 . /etc/rc.d/functions
 
-PID=`pidof -o %PPID /usr/bin/logitechdaemon`
+PID=`pidof -o %PPID /usr/bin/logitechg15`
 case "$1" in
   start)
-    stat_busy "Starting logitech-daemon"
-    [ -z "$PID" ] && /usr/bin/logitechdaemon
+    stat_busy "Starting logitechg15"
+    [ -z "$PID" ] && /usr/bin/logitechg15
     if [ $? -gt 0 ]; then
       stat_fail
     else
-      echo $PID > /var/run/logitech-daemon.pid
+      echo $PID > /var/run/logitechg15.pid
       stat_done
-      add_daemon logitech-daemon
+      add_daemon logitechg15
     fi
     ;;
   stop)
-    stat_busy "Stopping logitech-daemon"
+    stat_busy "Stopping logitechg15"
     [ ! -z "$PID" ]  && kill $PID &> /dev/null
     if [ $? -gt 0 ]; then
       stat_fail
     else
-      rm /var/run/logitech-daemon.pid
+      rm /var/run/logitechg15.pid
       stat_done
-      rm_daemon logitech-daemon
+      rm_daemon logitechg15
     fi
     ;;
   restart)

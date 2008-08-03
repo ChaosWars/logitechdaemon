@@ -1,3 +1,0 @@
-[D-BUS Service]
-Name=com.googlecode.logitechdaemon
-Exec=/usr/bin/logitechdaemon

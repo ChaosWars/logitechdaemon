@@ -13,17 +13,17 @@ INCLUDE_DIRECTORIES(${DBUS_INCLUDES}
 SET( SRC dbusobject.c main.c handlekeys.c )
 SET( DBUSXML dbusobject.xml )
 GLIB_BIND_XML_SERVER( DBUSSRC dbus_object ${DBUSXML} )
-ADD_EXECUTABLE( logitechdaemon ${SRC} ${DBUSSRC} )
+ADD_EXECUTABLE( logitechg15 ${SRC} ${DBUSSRC} )
 
-TARGET_LINK_LIBRARIES( logitechdaemon
-			gthread-2.0
-			${DBUS_GLIB_LIBRARY}
-			${DBUS_LIBRARY}
-			${GLIB2_LIBRARIES}
-			${LIBDAEMON_LIBRARY}
-			${G15TOOLS_LIBRARY} )
+TARGET_LINK_LIBRARIES( logitechg15
+						gthread-2.0
+						${DBUS_GLIB_LIBRARY}
+						${DBUS_LIBRARY}
+						${GLIB2_LIBRARIES}
+						${LIBDAEMON_LIBRARY}
+						${G15TOOLS_LIBRARY} )
 
-INSTALL( PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/logitechdaemon DESTINATION /etc/rc.d )
-INSTALL( PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/logitechdaemon.conf DESTINATION /etc/dbus-1/system.d )
-INSTALL( TARGETS logitechdaemon RUNTIME DESTINATION /usr/bin )
-INSTALL( FILES com.googlecode.logitechdaemon.service DESTINATION /usr/share/dbus-1/services )
+INSTALL( PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/logitechg15 DESTINATION /etc/rc.d )
+INSTALL( PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/logitechg15.conf DESTINATION /etc/dbus-1/system.d )
+INSTALL( TARGETS logitechg15 RUNTIME DESTINATION /usr/bin )
+INSTALL( FILES com.googlecode.logitechg15.service DESTINATION /usr/share/dbus-1/services )
