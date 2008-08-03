@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<node name="/com/googlecode/logitechdaemon">
-	<interface name="com.googlecode.logitechdaemon">
+<node name="/org/freedesktop/LogitechDaemon">
+	<interface name="org.freedesktop.LogitechDaemon">
 		<annotation name="org.freedesktop.DBus.GLib.CSymbol" value="dbus_object"/>
-        <!-- Keyboard methods and signals -->
-		<method name="set_lcd_brightness">
+		<method name="set_lcd_brightness" >
 			<arg name="brightness" type="i" direction="in"/>
 		</method>
 		<method name="set_lcd_contrast">
@@ -16,13 +15,13 @@
 		<method name="blank_screen"/>
 		<method name="show_logo"/>
 		<signal name="lcd_brightness_set" >
-			<arg name="brightness" type="i" direction="out"/>
+			<arg name="brightness" type="i" direction="out" />
 		</signal>
 		<signal name="lcd_contrast_set">
-			<arg name="contrast" type="i" direction="out"/>
+			<arg name="contrast" type="i" direction="out" />
 		</signal>
 		<signal name="kb_brightness_set">
-			<arg name="brightness" type="i" direction="out"/>
+			<arg name="brightness" type="i" direction="out" />
 		</signal>
 	</interface>
 </node>

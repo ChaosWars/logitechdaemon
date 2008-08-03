@@ -1,0 +1,3 @@
+[D-BUS Service]
+Name=com.googlecode.logitechg15
+Exec=/usr/bin/logitechg15
