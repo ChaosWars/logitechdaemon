@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2007 by Lawrence Lee   *
- *   valheru@facticius.net   *
+ *   Copyright (C) 2007 by Lawrence Lee                                    *
+ *   valheru.ashen.shugar@gmail.com                                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -17,12 +17,13 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+
+#include <libg15.h>
+#include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
-#include <stdbool.h>
-#include <libg15.h>
-#include <libdaemon/daemon.h>
 #include <linux/uinput.h>
+#include <libdaemon/daemon.h>
 #include "handlekeys.h"
 
 #define GKEY_OFFSET 167
