@@ -1,5 +1,4 @@
 FIND_PATH( LIBDAEMON_INCLUDE_DIR daemon.h /usr/include/libdaemon /usr/local/include/libdaemon )
-
 FIND_LIBRARY( LIBDAEMON_LIBRARY NAMES daemon PATH /usr/lib /usr/local/lib )
 
 IF( LIBDAEMON_INCLUDE_DIR AND LIBDAEMON_LIBRARY )

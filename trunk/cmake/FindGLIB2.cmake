@@ -11,7 +11,7 @@ if(GLIB2_INCLUDE_DIR AND GLIB2_LIBRARIES)
 endif(GLIB2_INCLUDE_DIR AND GLIB2_LIBRARIES)
 
 if (NOT WIN32)
-   include(UsePkgConfig)
+   include(FindPkgConfig)
    pkgconfig(glib-2.0 _LibGLIB2IncDir _LibGLIB2LinkDir _LibGLIB2LinkFlags _LibGLIB2Cflags)
 endif(NOT WIN32)
 

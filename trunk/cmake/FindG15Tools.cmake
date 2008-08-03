@@ -1,6 +1,5 @@
 FIND_PATH( LIBG15_INCLUDE_DIR libg15.h /usr/include /usr/local/include )
 FIND_PATH( LIBG15RENDER_INCLUDE_DIR libg15render.h /usr/include /usr/local/include )
-
 FIND_LIBRARY( LIBG15_LIBRARY NAMES g15 PATH /usr/lib /usr/local/lib )
 FIND_LIBRARY( LIBG15RENDER_LIBRARY NAMES g15render PATH /usr/lib /usr/local/lib )
 
