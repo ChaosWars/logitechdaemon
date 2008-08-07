@@ -1,3 +1,4 @@
+FIND_PACKAGE( PkgConfig REQUIRED )
 FIND_PATH( DBUS_INCLUDE_DIR dbus/dbus.h PATHS /usr/include/dbus-1.0 /usr/local/include/dbus-1.0 )
 FIND_PATH( DBUS_INCLUDE_LIB_DIR dbus/dbus-arch-deps.h PATHS /usr/lib/dbus-1.0/include /usr/local/lib/dbus-1.0/include )
 FIND_PATH( DBUS_GLIB_INCLUDE_DIR dbus/dbus-glib.h PATHS /usr/include/dbus-1.0 /usr/local/include/dbus-1.0 )

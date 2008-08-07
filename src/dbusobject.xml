@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<node name="/org/freedesktop/LogitechDaemon">
-	<interface name="org.freedesktop.LogitechDaemon">
+<node name="/com/googlecode/logitechg15">
+	<interface name="com.googlecode.logitechg15">
 		<annotation name="org.freedesktop.DBus.GLib.CSymbol" value="dbus_object"/>
 		<method name="set_lcd_brightness" >
 			<arg name="brightness" type="i" direction="in"/>

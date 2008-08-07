@@ -42,18 +42,18 @@
 #define DAEMON_NAME "Logitech G15"
 #define DAEMON_VERSION "0.6"
 
-typedef struct _DBusThread {
-    GMainLoop *loop;
-    GMainContext *context;
-    DBusObject *dbobj;
-} DBusThread;
+ typedef struct _DBusThread {
+     GMainLoop *loop;
+     GMainContext *context;
+     DBusObject *dbobj;
+ } DBusThread;
 
 typedef struct _GetKeyThread {
     gboolean run;
     GMainContext *context;
 } GetKeyThread;
 
-int uinput_fd = 0;
+int uinput_fd = -1;
 
 struct uinput_user_dev uinput;
 GMainLoop *loop = NULL;
@@ -64,7 +64,7 @@ GThread *get_key_thread = NULL;
 g15canvas *canvas = NULL;
 bool keyboard_found = false;
 
-void signalhandler ( int sig )
+ void signalhandler ( int sig )
 {
     switch ( sig ) {
         case SIGINT:
@@ -115,19 +115,19 @@ void exitLogitechDaemon ( int status )
     ioctl ( uinput_fd, UI_DEV_DESTROY );
     close ( uinput_fd );
     daemon_log ( LOG_INFO, "Exiting %s.\n", DAEMON_NAME );
-    daemon_retval_send ( -1 );
-    daemon_signal_done();
-    daemon_pid_file_remove();
+    /* daemon_retval_send ( -1 ); */
 
     if ( loop != NULL )
         g_main_loop_unref ( loop );
 
-    exit ( status );
+    daemon_retval_done();
+    daemon_pid_file_remove();
+    /* exit ( status ); */
 }
 
 bool initializeUInput()
 {
-    uinput_fd = open ( "/dev/input/uinput", O_WRONLY | O_NDELAY );
+    uinput_fd = open ( "/dev/input/uinput", O_RDWR );
 
     if ( uinput_fd < 0 ) {
         daemon_log ( LOG_ERR, "Failed to open /dev/input/uinput.\nCheck if the uinput module is loaded,\
@@ -141,7 +141,6 @@ bool initializeUInput()
     uinput.id.version = 4;
     uinput.id.bustype = BUS_USB;
     ioctl ( uinput_fd, UI_SET_EVBIT, EV_KEY );
-    ioctl ( uinput_fd, UI_SET_EVBIT, EV_REL );
 
     int i;
 
@@ -173,7 +172,6 @@ static gpointer dbus_thread_callback ( gpointer thread )
     }
 
     g_main_loop_unref ( t->loop );
-
     g_thread_exit ( &retval );
 }
 
@@ -301,6 +299,7 @@ int main ( int argc, char *argv[] )
             daemon_log ( LOG_ERR, "Failed to close all file descriptors: %s.\n", strerror ( errno ) );
             daemon_retval_send ( 1 );
             exitLogitechDaemon ( EXIT_FAILURE );
+            return 1;
         }
 
         /* Create the PID file */
@@ -309,8 +308,9 @@ int main ( int argc, char *argv[] )
             daemon_log ( LOG_ERR, "Could not create PID file (%s).\n", strerror ( errno ) );
 
             /* Send the error condition to the parent process */
-            daemon_retval_send ( 1 );
+            daemon_retval_send ( 2 );
             exitLogitechDaemon ( EXIT_FAILURE );
+            return 1;
         }
 
         /* Initialize signal handling */
@@ -327,8 +327,9 @@ int main ( int argc, char *argv[] )
 
         if ( !initialize() ) {
             daemon_log ( LOG_ERR, "Failed to initialize %s.\n", DAEMON_NAME );
-            daemon_retval_send ( 1 );
+            daemon_retval_send ( 3 );
             exitLogitechDaemon ( EXIT_FAILURE );
+            return 1;
         }
 
         /* Send OK to parent process */
@@ -338,5 +339,6 @@ int main ( int argc, char *argv[] )
         exitLogitechDaemon ( EXIT_SUCCESS );
     }
 
+    /* Stop the compiler from complaining */
     return 0;
 }

@@ -138,7 +138,7 @@ static void dbus_object_init ( GTypeInstance *instance, gpointer g_class )
     }
 
     if ( request_name_ret != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER ) {
-        daemon_log ( LOG_ERR, "Adress is already registered on bus\n" );
+        daemon_log ( LOG_ERR, "Address is already registered on bus\n" );
     }
 
     dbus_g_connection_register_g_object ( klass->connection, "/com/googlecode/logitechg15", G_OBJECT ( instance ) );
@@ -159,11 +159,11 @@ static void dbus_object_dispose ( GObject *object )
     self->priv->dispose_has_run = TRUE;
 
     /*
-      * In dispose, you are supposed to free all types referenced from this
-      * object which might themselves hold a reference to self. Generally,
-      * the most simple solution is to unref all members on which you own a
-      * reference.
-    */
+     * In dispose, you are supposed to free all types referenced from this
+     * object which might themselves hold a reference to self. Generally,
+     * the most simple solution is to unref all members on which you own a
+     * reference.
+     */
 
     /* Chain up to the parent class */
     G_OBJECT_CLASS ( parent_class )->dispose ( object );
