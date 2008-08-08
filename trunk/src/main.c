@@ -91,9 +91,6 @@ void exitLogitechDaemon ( int status )
         setLCDBrightness ( G15_BRIGHTNESS_DARK );
         setLCDContrast ( G15_CONTRAST_LOW );
         setLEDs ( 0 );
-
-        if ( exitLibG15() != G15_NO_ERROR )
-            daemon_log ( LOG_ERR, "Failed to exit libg15.\n" );
     }
 
     if ( getkeythread != NULL ) {
@@ -114,8 +111,11 @@ void exitLogitechDaemon ( int status )
 
     ioctl ( uinput_fd, UI_DEV_DESTROY );
     close ( uinput_fd );
+
+    if ( exitLibG15() != G15_NO_ERROR )
+        daemon_log ( LOG_ERR, "Failed to exit libg15.\n" );
+
     daemon_log ( LOG_INFO, "Exiting %s.\n", DAEMON_NAME );
-    /* daemon_retval_send ( -1 ); */
 
     if ( loop != NULL )
         g_main_loop_unref ( loop );
@@ -339,6 +339,5 @@ int main ( int argc, char *argv[] )
         exitLogitechDaemon ( EXIT_SUCCESS );
     }
 
-    /* Stop the compiler from complaining */
     return 0;
 }
